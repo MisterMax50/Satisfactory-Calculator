@@ -45,7 +45,8 @@ Das Spiel liefert offizielle Daten mit:
 export default {
   version: "1.0",
   items: {
-    "Desc_IronPlate_C": { id, name: { de, en }, form: "solid" | "fluid" | "gas", raw: bool }
+    "Desc_IronPlate_C": { id, name: { de, en }, form: "solid" | "fluid" | "gas", raw: bool,
+                          defaultRecipe: "Recipe_IronPlate_C" | null }   // null bei Rohstoffen / ohne Rezept
   },
   recipes: {
     "Recipe_IronPlate_C": {
@@ -53,7 +54,8 @@ export default {
       building: "Build_ConstructorMk1_C",
       duration: 6,                              // Sekunden pro Durchlauf
       inputs:  [{ item, amount }],              // pro Durchlauf; Fluide in m³ (Docs-Wert / 1000)
-      outputs: [{ item, amount }]               // erstes Element = Hauptprodukt
+      outputs: [{ item, amount }],              // erstes Element = Hauptprodukt
+      power: 1500                               // optional, MW: nur bei variabler Leistung (Mittelwert), sonst building.power
     }
   },
   buildings: {
@@ -64,24 +66,28 @@ export default {
 - Nur Rezepte, die in Produktionsgebäuden laufen (Konstruktor, Monteur, Fertiger, Hersteller, Schmelzofen, Gießerei, Raffinerie, Mischer, Packer, Teilchenbeschleuniger, Konverter, Quantenkodierer). Keine Werkbank-, Ausrüstungs- oder Baurezepte.
 - `raw: true` für Rohstoffe: alle Erze, Kalkstein, Kohle, Quarz, Schwefel, Bauxit, Uran, SAM, Wasser, Rohöl, Stickstoffgas.
 - Nur Items, die in mindestens einem enthaltenen Rezept vorkommen.
+- `defaultRecipe`: nicht-alternatives Rezept mit dem Item als erstem Output; ausgeschlossen sind Entpack-Rezepte (`Recipe_Unpackage*`), Konverter-Rezepte und Rest-/Recycling-Rezepte (`*Residual*`). Bei mehreren Kandidaten bevorzugt die ID `Recipe_<Basisname>_C`, sonst die alphabetisch erste. Kein Kandidat → `null`.
 
 ## Solver (`js/solver.js`)
 `solve({ targets, recipeChoice, data }) → Result`
 - `targets`: `[{ item, rate }]` (Einheiten bzw. m³ pro Minute).
-- `recipeChoice`: `{ [itemId]: recipeId }`; fehlt ein Eintrag, gilt das Standardrezept (nicht alternativ, Item ist Hauptprodukt; bei mehreren das mit der kleinsten ID-Sortierung). Rohstoffe haben kein Rezept.
+- `recipeChoice`: `{ [itemId]: recipeId }`; fehlt ein Eintrag, gilt `items[id].defaultRecipe`. Rohstoffe werden nie produziert. Nicht-Rohstoff ohne Rezept → erscheint in `raw` mit `missingRecipe: true`.
+- Strom je Maschine: `recipe.power ?? buildings[recipe.building].power`.
 - Verfahren: Für jedes erreichbare Nicht-Rohstoff-Item genau ein Rezept. Lineares Gleichungssystem „Nettoproduktion je Item = Bedarf“, Nebenprodukte werden angerechnet. Lösen per Gauß-Elimination. Wird eine Rezeptrate negativ (Nebenprodukt deckt mehr als den Bedarf), wird das Rezept auf 0 gesetzt, das Item als Überschuss geführt und neu gelöst. Singuläres System → Fehler `{ error: "cycle", items }`.
 - `Result`:
   ```js
   {
     rows: [{ recipe, item, runsPerMin, machines, building, power,
              inputs: [{item, rate}], outputs: [{item, rate}] }],   // Reihenfolge: Ziel zuerst, dann nach Tiefe
-    raw:     [{ item, rate }],
+    raw:     [{ item, rate, missingRecipe? }],
     surplus: [{ item, rate }],
     power:   number,         // MW
     machineCount: number,    // Summe aufgerundeter Maschinen
-    tree:    Node            // { item, rate, recipe, children: Node[] } für die Baumansicht
+    tree:    Node[]          // je Ziel ein Knoten { item, rate, recipe, children: Node[] }
   }
   ```
+- Baum: Kinder = Eingänge des gewählten Rezepts, skaliert mit `rate / Hauptprodukt-Menge pro Minute` (ohne Nebenprodukt-Gutschrift, reine Anzeige). Ein Item, das auf dem aktuellen Pfad schon vorkommt, wird nicht weiter aufgeklappt (`cycle: true`).
+- `rows`-Reihenfolge: nach Tiefe (längster Pfad von einem Ziel), bei Gleichstand nach Item-ID.
 - `machines` ist die exakte Bruchzahl. Vorschlag in der UI: `ceil(machines)` Maschinen mit Taktung `machines / ceil(machines)`.
 - Leistung je Zeile: `ceil(m) × P × (m / ceil(m)) ^ 1.321928`.
 - Werte mit Toleranz 1e-9 runden, damit keine Fließkomma-Artefakte entstehen.
