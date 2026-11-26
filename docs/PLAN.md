@@ -10,7 +10,7 @@ Prüfung: Server starten, `/` und `/tests/` laden ohne Konsolenfehler, Beispielt
 `tools/extract_gamedata.py`: liest `en-US.json` und `de.json` (UTF-16) aus dem Docs-Ordner (Standardpfad in SPEC, per `--docs` überschreibbar), erzeugt `data/gamedata.js` gemäß SPEC „Datenmodell“. Rezept-Strings (`mIngredients`, `mProduct`, `mProducedIn`) parsen; Fluidmengen /1000; Dauer aus `mManufactoringDuration`; Leistung aus `mPowerConsumption` (variable Gebäude: Mittel aus `mEstimatedMininumPowerConsumption`/`Maximum` bzw. Rezeptwerten). Filter auf Produktionsgebäude. Rohstoffliste laut SPEC. Deterministische, sortierte Ausgabe.
 Prüfung: Skript läuft ohne Fehler; Stichproben (Eisenplatte, Schraube, Kunststoff mit Schweröl-Nebenprodukt, Alt-Rezept „Gegossene Schraube“/„Cast Screw“, Wasser `fluid` + `raw`) im Bericht zitiert; Anzahl Items/Rezepte/Gebäude genannt.
 
-## 3. Solver — Heavy — nach 1 — [ ]
+## 3. Solver — Heavy — nach 1 — [x]
 `js/solver.js` gemäß SPEC „Solver“, reine Funktionen. `tests/solver.test.js` mit kleinem eigenem Fixture-Datensatz (nicht gamedata): Einzelkette, Diamant (zwei Pfade zum selben Zwischenprodukt), Nebenprodukt wird angerechnet, Überschuss bei negativer Rate, Alternativrezept über `recipeChoice`, Zyklus ohne Lösung → `error: "cycle"`, Fluid-Mengen, Leistung mit Untertaktung, Baumstruktur.
 Prüfung: alle Tests grün im Browser-Runner.
 

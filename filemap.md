@@ -17,3 +17,4 @@
 - `tests/runner.js` — Mini-Testrunner (`test`, `assertEqual`, `assertClose`, `assertThrows`)
 - `tests/example.test.js` — Beispieltest
 - `tests/state.test.js` — Tests für state.js und i18n.js
+- `tests/solver.test.js` — Solver-Tests mit eigenem Fixture-Datensatz
