@@ -7,10 +7,9 @@
 - Pläne lokal im Browser speichern und als Link teilen.
 - Keine Installation: statische Dateien, läuft über `python -m http.server`.
 
-## Nicht-Ziele (MVP)
-- Keine Optimierung (z.B. minimaler Rohstoffverbrauch, automatische Rezeptwahl).
-- Kein grafischer Fluss-Graph (nur eingerückter Baum). Später möglich.
-- Kein Stromverbrauch von Minern/Extraktoren, keine Erzknoten-Reinheit, keine Somersloops/Produktionsverstärkung.
+## Nicht-Ziele
+- Optimierung, Fluss-Graph, Miner/Reinheit und Somersloops: in Version 2 umgesetzt, siehe Abschnitt „Version 2“ unten.
+- Keine Power-Shards/Übertaktung von Produktionsgebäuden (nur Untertaktung auf ganze Maschinen); Übertaktung nur für Förderanlagen.
 - Kein Import/Export von Spielständen, kein Server, kein Login.
 - Keine Spiel-Grafiken, Icons oder Logos (Urheberrecht). Items werden als Text dargestellt.
 
@@ -128,3 +127,53 @@ Kontrollraum einer Fabrik. Eine einzige Akzentfarbe, Zahlen in schmaler Beschild
 - Beispielplan „5 Modulare Rahmen/min“ stimmt mit manueller Rechnung überein.
 - Sprache, Speichern, Link teilen funktionieren nach Neuladen.
 - Keine Konsolenfehler; Layout bei 1440px und 390px Breite in Ordnung.
+
+## Version 2
+
+### Daten (Erweiterung `data/gamedata.js`, weiterhin generiert)
+- `buildings[id]` zusätzlich: `sloopSlots` (`mProductionShardSlotSize`), `sloopBoost` (`mProductionShardBoostMultiplier`, Verstärkung je Somersloop), `boostPowerExponent` (`mProductionBoostPowerConsumptionExponent`).
+- Neu `extractors`: `{ id, name: {de,en}, kind: "miner" | "pump" | "well", ratePerMin, power, allowed: [itemId] | null, forms: ["solid"|"fluid"|"gas"] }`. `ratePerMin` = `mItemsPerCycle / mExtractCycleTime × 60`, Fluide /1000, gilt für normalen Knoten und 100 %. Miner Mk1–3, Wasserextraktor, Ölextraktor, Ressourcenbrunnen-Extraktor.
+- Neu `pressurizer`: `{ id, name, power }` (Ressourcenbrunnen-Druckerzeuger).
+- `js/resourceLimits.js` (von Hand gepflegt, nicht generiert): maximale Weltförderung je Rohstoff pro Minute als Richtwert für die Optimierung: Eisenerz 92100, Kalkstein 69900, Kupfererz 36900, Kohle 42300, Cateriumerz 15000, Rohquarz 13500, Schwefel 10800, Bauxit 12300, Uran 2100, SAM 10200, Rohöl 12600, Stickstoffgas 12000, Wasser unbegrenzt.
+
+### Gemeinsames Ergebnis (`js/result.js`)
+`buildResult({ rates, targets, data, mods })` baut aus Rezeptraten (`{ recipeId: Durchläufe/min }`) das `Result` aus SPEC „Solver“. `solve()` und `optimize()` nutzen es beide. Ein Item darf von mehreren Rezepten kommen (eine Zeile je Rezept). Baum: Bedarf eines Items wird anteilig auf seine Erzeuger verteilt.
+`mods = { sloops: { recipeId: n }, imports: [itemId] }`:
+- Somersloops: `boost = n × building.sloopBoost` (0 ≤ n ≤ sloopSlots). Alle Outputs je Durchlauf × `(1 + boost)`, Inputs unverändert. Strom je Maschine × `(1 + boost) ^ boostPowerExponent`. Zeile bekommt `sloops: n`, `sloopsTotal: ceil(machines) × n`; `Result.sloopsTotal`.
+- Importe: Items in `imports` werden nie produziert, sondern wie Rohstoffe geliefert (`raw`-Eintrag mit `imported: true`).
+
+### Förderung (`js/extraction.js`, rein)
+`computeExtraction({ raw, settings, data }) → { rows: [{ item, rate, extractor, purity, clock, count, clockEffective, power, pressurizers }], power }`.
+- Reinheit: unrein 0,5 / normal 1 / rein 2. Wasserextraktor ohne Reinheit (immer 1).
+- `count = ceil(rate / (ratePerMin × Reinheit × maxClock))`, `clockEffective = rate / (count × ratePerMin × Reinheit)`, `power = count × P × clockEffective ^ 1.321928`. `maxClock` 1–250 %.
+- Ressourcenbrunnen: `count` = Satelliten-Extraktoren (0 MW), zusätzlich `pressurizers` (Eingabe, Standard `ceil(count / 4)`, als Schätzung gekennzeichnet) × 150 MW, nicht getaktet.
+- Standard je Rohstoff: fest → Miner Mk.2, Wasser → Wasserextraktor, Rohöl → Ölextraktor, Stickstoff → Ressourcenbrunnen; Reinheit normal; maxClock 100 %. Wählbar sind nur Förderanlagen, deren `allowed`/`forms` passt (Wasser und Öl auch per Brunnen).
+- Importierte Items und Items ohne Rezept haben keine Förderung.
+
+### Optimierung (`js/optimizer.js`, rein)
+`optimize({ targets, objective, allowAlternates, excluded, mods, data }) → Result | { error: "infeasible", items }`.
+- Lineares Programm, eigener Simplex (zwei Phasen oder Big-M, Bland-Regel gegen Kreiseln), keine Bibliothek. Nur Rezepte, die rückwärts von den Zielen erreichbar sind; ausgeschlossene und (wenn `allowAlternates` falsch) alternative Rezepte entfallen.
+- Variablen: Rezeptraten ≥ 0, Rohstoff-/Import-Lieferung ≥ 0. Je Item: Nettoproduktion + Lieferung ≥ Zielbedarf (Rest = Überschuss).
+- Ziel `"resources"`: minimiere Σ Lieferung / Weltlimit (Wasser Gewicht 1e-6, Importe 0) + 1e-6 × Maschinen. Ziel `"power"`: minimiere Strom der Produktion + 1e-6 × gewichtete Rohstoffe.
+- Somersloops und Importe aus `mods` gelten wie im Solver.
+- Laufzeit für jedes einzelne Ziel-Item bei 10/min < 500 ms.
+
+### Fluss-Graph (`js/flowLayout.js` rein, `js/ui/flow.js` Darstellung)
+- Knoten: je Ergebniszeile ein Maschinenknoten, je Rohstoff/Import ein Quellknoten, je Ziel ein Zielknoten, je Überschuss ein Überschussknoten.
+- Kanten: Angebot eines Items (Erzeuger + Lieferung) wird anteilig auf Verbraucher und Ziel-/Überschussknoten verteilt; Kante = Item + Menge.
+- Layout links → rechts in Spalten: Quellen links, Maschinen nach längstem Pfad, Ziele/Überschuss rechts. Kreuzungen per Baryzentrum-Verfahren (mehrere Durchgänge) verringern. Kanten als Bézierkurven.
+- Darstellung SVG: verschieben per Ziehen, Zoom per Mausrad (zum Cursor) und Knöpfe „+“, „−“, „Einpassen“; Tastatur +/−/Pfeile, wenn der Graph fokussiert ist.
+
+### Zustand v2
+`{ v: 2, targets, recipes, lang, mode: "manual" | "optimized", objective: "resources" | "power", allowAlternates: true, excluded: [recipeId], sloops: { recipeId: n }, imports: [itemId], extraction: { itemId: { extractor, purity, maxClock, pressurizers? } } }`. v1-Hashes und -Pläne werden beim Laden zu v2 migriert (fehlende Felder mit Standardwerten).
+
+### Oberfläche v2
+- **Rezepte**: Segment „Manuell | Optimiert“ oben im Bereich. Manuell wie bisher. Optimiert: Auswahl Ziel („Rohstoffe sparen“ / „Strom sparen“), Kontrollkästchen „Alternativrezepte verwenden“, Liste der genutzten Rezepte je Item (Text, mehrere pro Item möglich) mit Textknopf „Ausschließen“; darunter ausgeschlossene Rezepte mit „Wieder erlauben“.
+- **Produktionsliste**: In der Maschinenspalte unter dem Schild ein kleines Select „Somersloops 0…n“ (nur wenn `sloopSlots > 0`); bei n > 0 Zusatz „+100 % Ausstoß · 6 Somersloops“ in Akzent. In der Produktspalte Textknopf „Zuliefern“ (Item wird Import). Somersloops werden im optimierten Modus ebenfalls berücksichtigt.
+- **Kennzahlen**: Strom = Produktion + Förderung, darunter klein „davon Förderung 120 MW“. Fünfte Kachel „Somersloops“ nur wenn > 0.
+- **Rohstoffe**: Tabelle Rohstoff · Menge · Förderanlage (Select) · Reinheit (Select, beim Wasserextraktor ausgeblendet) · Max. Takt (Zahl 1–250 %) · Ergebnis („4 × Miner Mk.2 bei 93,75 %“) · Strom; bei Brunnen Zahlenfeld „Druckerzeuger“. Summenzeile. Darunter „Zugeliefert“: importierte Items mit Menge und Knopf „Selbst herstellen“. Darunter Überschuss wie bisher.
+- **Fluss**: vierter Reiter. Maschinenknoten 200 × 56 px im Stil der Maschinenschilder (Fläche erhöht, 1px Akzentrahmen, Radius 4px, oben `3 × Konstruktor`, darunter Itemname gedämpft). Quellknoten: gestrichelter Rahmen in Linienfarbe. Ziel- und Überschussknoten: Rahmen Akzent bzw. gedämpft. Kanten 1,5px: Stückgut in gedämpfter Textfarbe, Fluide in Rohrblau; Beschriftung „Eisenbarren 30 /min“ mittig auf Flächenfarbe. Hover/Fokus auf Knoten hebt seine Kanten in Akzent hervor. Steuerknöpfe oben rechts im Graph.
+- **Fehler** `infeasible`: Banner wie beim Zyklus: „Mit den erlaubten Rezepten lässt sich {items} nicht herstellen. Erlaube Alternativrezepte oder weniger Ausschlüsse.“
+
+### README
+`README.md` (Deutsch, kurz Englisch): Was es ist, Start (`start.bat` / `python -m http.server 8765`), Funktionen, Spieldaten aktualisieren, Tests, Hinweis „Inoffizielles Fan-Tool, nicht mit Coffee Stain Studios verbunden; Spieldaten aus den Community-Docs des Spiels“. Ein Screenshot unter `docs/screenshot.png`.
