@@ -2,8 +2,8 @@
 
 Status: `[ ]` offen, `[x]` abgenommen. Details zu Datenmodell, Solver, Zustand und Design: `docs/SPEC.md`.
 
-## 1. Scaffold — Light — keine Abhängigkeit — [ ]
-Ordnerstruktur laut SPEC „Architektur“ anlegen. `index.html` (lang="de", lädt `css/app.css` und `js/main.js` als Modul, Google-Fonts-Link Barlow/Barlow Condensed), `css/app.css` mit den Design-Tokens aus SPEC „Design“ als CSS-Variablen, leere Module mit Kopfkommentar. `start.bat` startet `python -m http.server 8080` im Projektordner und öffnet `http://localhost:8080`. `tests/index.html` + `tests/runner.js`: Mini-Runner (`test(name, fn)`, `assertEqual`, `assertClose(a, b, eps)`), lädt alle in `tests/index.html` gelisteten `*.test.js`, zeigt grün/rot und Summe; ein Beispieltest. `data/gamedata.js` als Platzhalter mit leerer Struktur.
+## 1. Scaffold — Light — keine Abhängigkeit — [x]
+Ordnerstruktur laut SPEC „Architektur“ anlegen. `index.html` (lang="de", lädt `css/app.css` und `js/main.js` als Modul, Google-Fonts-Link Barlow/Barlow Condensed), `css/app.css` mit den Design-Tokens aus SPEC „Design“ als CSS-Variablen, leere Module mit Kopfkommentar. `start.bat` startet `python -m http.server 8765` im Projektordner und öffnet `http://localhost:8765`. `tests/index.html` + `tests/runner.js`: Mini-Runner (`test(name, fn)`, `assertEqual`, `assertClose(a, b, eps)`), lädt alle in `tests/index.html` gelisteten `*.test.js`, zeigt grün/rot und Summe; ein Beispieltest. `data/gamedata.js` als Platzhalter mit leerer Struktur.
 Prüfung: Server starten, `/` und `/tests/` laden ohne Konsolenfehler, Beispieltest grün.
 
 ## 2. Spieldaten-Extraktion — Careful — nach 1 — [ ]

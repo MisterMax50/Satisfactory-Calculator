@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tests – Satisfactory-Rechner</title>
+  <link rel="stylesheet" href="../css/app.css">
+  <style>
+    main { max-width: 760px; margin: 24px auto; padding: 0 16px; }
+    h1 { font-family: var(--font-display); font-weight: 500; }
+    .summary { font-family: var(--font-display); font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+    ul { list-style: none; padding: 0; }
+    li { border-bottom: 1px solid var(--color-line); padding: 6px 0; }
+    .ok { color: var(--color-fluid); }
+    .fail { color: var(--color-error); }
+    .err { color: var(--color-text-muted); margin: 4px 0 0 16px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Tests</h1>
+    <p class="summary" id="summary">läuft …</p>
+    <ul id="results"></ul>
+  </main>
+  <script type="module">
+    import { runAll } from "./runner.js";
+    // Testdateien hier eintragen. Mit ?files=a.test.js,b.test.js nur diese laden.
+    const FILES = ["example.test.js"];
+    const only = new URLSearchParams(location.search).get("files");
+    for (const f of only ? only.split(",") : FILES) await import("./" + f);
+
+    const list = document.getElementById("results");
+    const results = await runAll((r) => {
+      const li = document.createElement("li");
+      const mark = document.createElement("span");
+      mark.className = r.ok ? "ok" : "fail";
+      mark.textContent = (r.ok ? "✔ " : "✘ ") + r.name;
+      li.appendChild(mark);
+      if (!r.ok) {
+        const e = document.createElement("div");
+        e.className = "err";
+        e.textContent = r.error;
+        li.appendChild(e);
+      }
+      list.appendChild(li);
+    });
+    document.getElementById("summary").textContent =
+      `${results.passed} von ${results.passed + results.failed} bestanden`;
+  </script>
+</body>
+</html>

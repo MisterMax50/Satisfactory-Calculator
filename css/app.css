@@ -1,0 +1,59 @@
+/*
+ * app.css — Design-Tokens (SPEC „Design“) und body-Grundstil.
+ * Farben und Schriften nur über die Variablen unten verwenden.
+ * Layout folgt in Task 5.
+ */
+
+:root {
+  /* Farben */
+  --color-bg: #1B242B;          /* Grund */
+  --color-surface: #24313A;     /* Fläche */
+  --color-surface-raised: #2D3C47; /* Fläche erhöht */
+  --color-line: #3A4B57;        /* Linie */
+  --color-text: #E6EBEE;        /* Text */
+  --color-text-muted: #9AA9B3;  /* Text gedämpft */
+  --color-accent: #FF9A3C;      /* Akzent: Sicherheitsorange */
+  --color-fluid: #5BB8E6;       /* Fluide: Rohrblau */
+  --color-error: #F06A5E;       /* Fehler */
+
+  /* Schriften */
+  --font-text: "Barlow", system-ui, Arial, sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+
+  /* Typografie */
+  --font-size-base: 15px;
+  --line-height-base: 1.5;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-text);
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  line-height: var(--line-height-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
