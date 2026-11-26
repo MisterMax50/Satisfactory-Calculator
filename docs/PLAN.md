@@ -40,7 +40,7 @@ Prüfung: Miner Mk1/2/3 = 60/120/240 pro min, 5/15/45 MW; Wasserextraktor 120 m�
 ## 10. Optimierer — Heavy — nach 8 — [ ]
 `js/optimizer.js` laut SPEC „Optimierung“ mit eigenem Simplex. Tests: kleines LP mit bekannter Lösung, Wahl des sparsameren Alternativrezepts, Ausschlüsse, `allowAlternates: false`, infeasible, Ziel Strom vs. Rohstoffe, Somersloops; Laufzeit-Test über alle Items mit echten Daten.
 
-## 11. Fluss-Graph — Careful — nach 8 — [ ]
+## 11. Fluss-Graph — Careful — nach 8 — [x]
 `js/flowLayout.js` (rein, getestet) und `js/ui/flow.js` (SVG, Verschieben/Zoom/Einpassen, Hover) laut SPEC; vierten Reiter „Fluss“ in `js/ui/results.js` eintragen.
 
 ## 12. Oberfläche v2 — Careful — nach 7, 8, 9, 10, 11 — [ ]

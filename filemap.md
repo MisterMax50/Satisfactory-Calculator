@@ -12,6 +12,7 @@
 - `js/solver.js` — Produktionsberechnung manuell (Gleichungssystem), rein
 - `js/result.js` — buildResult, effectiveRecipe (Somersloops), Strom-/Maschinen-Hilfen; gemeinsam für Solver und Optimierer
 - `js/extraction.js` — Förderung: Miner/Extraktoren, Reinheit, Takt, Quellenkompressoren
+- `js/flowLayout.js` — Fluss-Graph: Knoten, anteilige Kanten, Spalten-Layout (rein)
 - `js/state.js` — Zustand, URL-Hash, localStorage-Pläne
 - `js/i18n.js` — UI-Texte de/en, Zahlenformat
 - `js/resourceLimits.js` — max. Weltförderung je Rohstoff/min (Richtwerte, von Hand gepflegt), für den Optimierer
@@ -26,6 +27,7 @@
 - `js/ui/production.js` — Reiter „Produktionsliste“ (Tabelle, schmal gestapelt)
 - `js/ui/tree.js` — Reiter „Baum“ (verschachtelte details)
 - `js/ui/rawview.js` — Reiter „Rohstoffe“ mit Überschuss-Tabelle
+- `js/ui/flow.js` — Reiter „Fluss“: SVG-Graph mit Verschieben, Zoom, Einpassen
 - `tests/index.html` — Browser-Testrunner (Testliste)
 - `tests/runner.js` — Mini-Testrunner (`test`, `assertEqual`, `assertClose`, `assertThrows`)
 - `tests/example.test.js` — Beispieltest
@@ -33,3 +35,4 @@
 - `tests/solver.test.js` — Solver-Tests mit eigenem Fixture-Datensatz
 - `tests/result.test.js` — Tests für buildResult, Somersloops, Importe
 - `tests/extraction.test.js` — Tests für die Förderung
+- `tests/flow.test.js` — Tests für das Fluss-Layout

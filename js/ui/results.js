@@ -5,11 +5,13 @@ import { itemLabel, flowNode } from "./common.js";
 import { productionTable } from "./production.js";
 import { treeView } from "./tree.js";
 import { rawView } from "./rawview.js";
+import { flowTab } from "./flow.js";
 
 const TABS = [
   { id: "list", label: "tabs.list", view: productionTable },
   { id: "tree", label: "tabs.tree", view: treeView },
   { id: "raw", label: "tabs.raw", view: rawView },
+  { id: "flow", label: "tabs.flow", view: flowTab },
 ];
 
 // Gewählter Reiter lebt nur in der Sitzung (wird nicht gespeichert).

@@ -25,7 +25,7 @@
   <script type="module">
     import { runAll } from "./runner.js";
     // Testdateien hier eintragen. Mit ?files=a.test.js,b.test.js nur diese laden.
-    const FILES = ["example.test.js", "state.test.js", "solver.test.js", "result.test.js", "extraction.test.js"];
+    const FILES = ["example.test.js", "state.test.js", "solver.test.js", "result.test.js", "extraction.test.js", "flow.test.js"];
     const only = new URLSearchParams(location.search).get("files");
     for (const f of only ? only.split(",") : FILES) await import("./" + f);
 

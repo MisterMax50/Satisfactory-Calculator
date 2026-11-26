@@ -700,3 +700,177 @@ body {
 .cycle-mark {
   color: var(--color-text-muted);
 }
+
+/* Fluss */
+.flow {
+  position: relative;
+  height: min(70vh, 720px);
+  min-height: 360px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+
+.flow-viewport {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.flow.is-dragging .flow-viewport {
+  cursor: grabbing;
+}
+
+.flow-svg {
+  display: block;
+}
+
+.flow-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+}
+
+.flow-btn {
+  min-width: 36px;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Knoten */
+.flow-node {
+  cursor: pointer;
+  outline: none;
+}
+
+.flow-box {
+  fill: var(--color-surface-raised);
+  stroke: var(--color-accent);
+  stroke-width: 1;
+}
+
+.flow-node--source .flow-box {
+  fill: var(--color-surface);
+  stroke: var(--color-line);
+  stroke-dasharray: 4 3;
+}
+
+.flow-node--target .flow-box {
+  fill: var(--color-surface);
+  stroke: var(--color-accent);
+}
+
+.flow-node--surplus .flow-box {
+  fill: var(--color-surface);
+  stroke: var(--color-text-muted);
+}
+
+.flow-ring {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  visibility: hidden;
+}
+
+.flow-node:focus-visible .flow-ring {
+  visibility: visible;
+}
+
+.flow-line1 {
+  fill: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.flow-line2 {
+  fill: var(--color-text-muted);
+  font-family: var(--font-text);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Quelle, Ziel, Überschuss: Zeile 1 Name/„Ziel: …“, Zeile 2 Menge in Schilderschrift */
+.flow-node--source .flow-line1 {
+  font-family: var(--font-text);
+  font-size: 13px;
+}
+
+.flow-node--source .flow-line2,
+.flow-node--target .flow-line2,
+.flow-node--surplus .flow-line2 {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.flow-node--surplus .flow-line1 {
+  fill: var(--color-text-muted);
+}
+
+.flow-mark {
+  fill: var(--color-fluid);
+}
+
+/* Kanten */
+.flow-edge {
+  fill: none;
+  stroke: var(--color-text-muted);
+  stroke-width: 1.5;
+}
+
+.flow-edge.is-fluid {
+  stroke: var(--color-fluid);
+}
+
+.flow.has-active .flow-edge {
+  stroke: var(--color-line);
+}
+
+.flow.has-active .flow-edge.is-hl {
+  stroke: var(--color-accent);
+}
+
+.flow-pill {
+  fill: var(--color-surface);
+}
+
+.flow-label-text {
+  fill: var(--color-text);
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.flow-label {
+  pointer-events: none;
+}
+
+.flow-label.is-culled {
+  display: none;
+}
+
+.flow.has-active .flow-label.is-hl {
+  display: inline;
+}
+
+.flow.has-active .flow-label.is-hl .flow-pill {
+  stroke: var(--color-accent);
+  stroke-width: 1;
+}
+
+.flow.has-active .flow-label:not(.is-hl) .flow-label-text {
+  fill: var(--color-text-muted);
+}
+
+.flow.is-far .flow-labels {
+  display: none;
+}
