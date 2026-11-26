@@ -7,7 +7,7 @@
 - `start.bat` — lokaler Server + Browser öffnen
 - `css/app.css` — Design-Tokens und Layout
 - `data/gamedata.js` — GENERIERT aus Spieldaten, nicht editieren
-- `tools/extract_gamedata.py` — erzeugt `data/gamedata.js` (geplant)
+- `tools/extract_gamedata.py` — erzeugt `data/gamedata.js` aus en-US.json/de.json der Spiel-Docs (`--docs`, `--out`)
 - `js/main.js` — Einstieg, verdrahtet Zustand → Solver → UI
 - `js/solver.js` — Produktionsberechnung, rein
 - `js/state.js` — Zustand, URL-Hash, localStorage-Pläne
@@ -16,3 +16,4 @@
 - `tests/index.html` — Browser-Testrunner (Testliste)
 - `tests/runner.js` — Mini-Testrunner (`test`, `assertEqual`, `assertClose`, `assertThrows`)
 - `tests/example.test.js` — Beispieltest
+- `tests/state.test.js` — Tests für state.js und i18n.js

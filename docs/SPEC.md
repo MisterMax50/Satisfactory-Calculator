@@ -66,7 +66,11 @@ export default {
 - Nur Rezepte, die in Produktionsgebäuden laufen (Konstruktor, Monteur, Fertiger, Hersteller, Schmelzofen, Gießerei, Raffinerie, Mischer, Packer, Teilchenbeschleuniger, Konverter, Quantenkodierer). Keine Werkbank-, Ausrüstungs- oder Baurezepte.
 - `raw: true` für Rohstoffe: alle Erze, Kalkstein, Kohle, Quarz, Schwefel, Bauxit, Uran, SAM, Wasser, Rohöl, Stickstoffgas.
 - Nur Items, die in mindestens einem enthaltenen Rezept vorkommen.
-- `defaultRecipe`: nicht-alternatives Rezept mit dem Item als erstem Output; ausgeschlossen sind Entpack-Rezepte (`Recipe_Unpackage*`), Konverter-Rezepte und Rest-/Recycling-Rezepte (`*Residual*`). Bei mehreren Kandidaten bevorzugt die ID `Recipe_<Basisname>_C`, sonst die alphabetisch erste. Kein Kandidat → `null`.
+- `defaultRecipe` in Stufen, jeweils nur Rezepte mit dem Item als erstem Output und ohne Entpack-Rezepte (`Recipe_Unpackage*`):
+  1. nicht alternativ, kein Konverter, kein `*Residual*` → bevorzugt ID `Recipe_<Basisname>_C`, sonst alphabetisch erste;
+  2. sonst nicht alternativ inkl. Konverter/Residual (alphabetisch erste);
+  3. sonst alternativ (alphabetisch erste);
+  4. sonst `null` (Rohstoffe immer `null`).
 
 ## Solver (`js/solver.js`)
 `solve({ targets, recipeChoice, data }) → Result`
