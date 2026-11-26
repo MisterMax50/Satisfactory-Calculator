@@ -37,7 +37,7 @@ Prüfung: Miner Mk1/2/3 = 60/120/240 pro min, 5/15/45 MW; Wasserextraktor 120 m�
 ## 9. Zustand v2 und Texte — Medium — keine Abhängigkeit — [x]
 `js/state.js` auf v2 inkl. Migration v1 → v2; `js/i18n.js` mit allen Texten aus SPEC „Oberfläche v2“ (de + en). Tests für Migration und neue Felder.
 
-## 10. Optimierer — Heavy — nach 8 — [ ]
+## 10. Optimierer — Heavy — nach 8 — [x]
 `js/optimizer.js` laut SPEC „Optimierung“ mit eigenem Simplex. Tests: kleines LP mit bekannter Lösung, Wahl des sparsameren Alternativrezepts, Ausschlüsse, `allowAlternates: false`, infeasible, Ziel Strom vs. Rohstoffe, Somersloops; Laufzeit-Test über alle Items mit echten Daten.
 
 ## 11. Fluss-Graph — Careful — nach 8 — [x]

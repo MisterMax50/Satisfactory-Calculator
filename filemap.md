@@ -10,6 +10,7 @@
 - `tools/extract_gamedata.py` — erzeugt `data/gamedata.js` aus en-US.json/de.json der Spiel-Docs (`--docs`, `--out`)
 - `js/main.js` — Einstieg, verdrahtet Zustand → Solver → UI
 - `js/solver.js` — Produktionsberechnung manuell (Gleichungssystem), rein
+- `js/optimizer.js` — Optimierung (eigener Simplex), Ziel Rohstoffe oder Strom
 - `js/result.js` — buildResult, effectiveRecipe (Somersloops), Strom-/Maschinen-Hilfen; gemeinsam für Solver und Optimierer
 - `js/extraction.js` — Förderung: Miner/Extraktoren, Reinheit, Takt, Quellenkompressoren
 - `js/flowLayout.js` — Fluss-Graph: Knoten, anteilige Kanten, Spalten-Layout (rein)
@@ -36,3 +37,4 @@
 - `tests/result.test.js` — Tests für buildResult, Somersloops, Importe
 - `tests/extraction.test.js` — Tests für die Förderung
 - `tests/flow.test.js` — Tests für das Fluss-Layout
+- `tests/optimizer.test.js` — Optimierer-Tests (Fixture + echte Daten, Laufzeit)
