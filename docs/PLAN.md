@@ -31,7 +31,7 @@ Review, Gegenrechnung, Commit.
 `tools/extract_gamedata.py` erweitern: Somersloop-Felder an `buildings`, neue `extractors` und `pressurizer` laut SPEC „Version 2 › Daten“. `js/resourceLimits.js` von Hand anlegen. Neu erzeugen.
 Prüfung: Miner Mk1/2/3 = 60/120/240 pro min, 5/15/45 MW; Wasserextraktor 120 m³/min 20 MW; Ölextraktor 120 m³/min 40 MW; Brunnen-Extraktor 60 m³/min; Druckerzeuger 150 MW; Somersloop-Plätze aller Produktionsgebäude im Bericht.
 
-## 8. Ergebnis-Kern, Somersloops, Importe, Förderung — Careful — keine Abhängigkeit — [ ]
+## 8. Ergebnis-Kern, Somersloops, Importe, Förderung — Careful — keine Abhängigkeit — [x]
 `js/result.js` (buildResult) aus `js/solver.js` herauslösen; `solve()` nutzt es und nimmt `mods` an. Somersloops und Importe laut SPEC. `js/extraction.js` neu. Tests: bestehende 36 bleiben grün; neue Tests für Somersloops (Ausstoß, Strom), Importe, Mehrfach-Erzeuger im Baum, Förderung (Reinheit, Takt, Brunnen, Wasserextraktor).
 
 ## 9. Zustand v2 und Texte — Medium — keine Abhängigkeit — [x]

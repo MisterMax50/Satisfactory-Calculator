@@ -9,7 +9,9 @@
 - `data/gamedata.js` — GENERIERT aus Spieldaten, nicht editieren
 - `tools/extract_gamedata.py` — erzeugt `data/gamedata.js` aus en-US.json/de.json der Spiel-Docs (`--docs`, `--out`)
 - `js/main.js` — Einstieg, verdrahtet Zustand → Solver → UI
-- `js/solver.js` — Produktionsberechnung, rein
+- `js/solver.js` — Produktionsberechnung manuell (Gleichungssystem), rein
+- `js/result.js` — buildResult, effectiveRecipe (Somersloops), Strom-/Maschinen-Hilfen; gemeinsam für Solver und Optimierer
+- `js/extraction.js` — Förderung: Miner/Extraktoren, Reinheit, Takt, Quellenkompressoren
 - `js/state.js` — Zustand, URL-Hash, localStorage-Pläne
 - `js/i18n.js` — UI-Texte de/en, Zahlenformat
 - `js/resourceLimits.js` — max. Weltförderung je Rohstoff/min (Richtwerte, von Hand gepflegt), für den Optimierer
@@ -29,3 +31,5 @@
 - `tests/example.test.js` — Beispieltest
 - `tests/state.test.js` — Tests für state.js und i18n.js
 - `tests/solver.test.js` — Solver-Tests mit eigenem Fixture-Datensatz
+- `tests/result.test.js` — Tests für buildResult, Somersloops, Importe
+- `tests/extraction.test.js` — Tests für die Förderung

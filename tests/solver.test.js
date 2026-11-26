@@ -394,7 +394,7 @@ test("Solver: fehlendes Rezept → raw mit missingRecipe", () => {
 });
 
 test("Solver: leere Ziele → leeres Ergebnis", () => {
-  const empty = { rows: [], raw: [], surplus: [], power: 0, machineCount: 0, tree: [] };
+  const empty = { rows: [], raw: [], surplus: [], power: 0, machineCount: 0, tree: [], sloopsTotal: 0 }; // sloopsTotal: SPEC v2
   assertEqual(run([]), empty);
   assertEqual(solve(), empty, "ohne Argumente");
   assertEqual(solve({ targets: null, recipeChoice: null, data: null }), empty, "null-Werte");

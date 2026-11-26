@@ -1,68 +1,24 @@
-// solver.js — Produktionsberechnung solve({ targets, recipeChoice, data }). Reine Funktionen, kein DOM,
+// solver.js — Produktionsberechnung solve({ targets, recipeChoice, data, mods }). Reine Funktionen, kein DOM,
 // kein localStorage, keine globalen Daten-Importe: der Solver kennt nur die übergebenen Daten.
+// Das Result baut js/result.js (buildResult); hier wird nur das Gleichungssystem gelöst.
+import {
+  EPS,
+  POWER_EXPONENT,
+  roundTol,
+  ceilMachines,
+  rowPower,
+  machinePower,
+  compareIds,
+  hasOwn,
+  normalizeRecipe,
+  effectiveRecipe,
+  normalizeTargets,
+  importSet,
+  emptyResult,
+  buildResult,
+} from "./result.js";
 
-/** Toleranz für Rundung, Vorzeichen-Entscheidungen und Aufrunden der Maschinenzahl. */
-export const EPS = 1e-9;
-/** Exponent der Untertaktungsformel (SPEC „Solver“). */
-export const POWER_EXPONENT = 1.321928;
-
-const hasOwn = (obj, key) =>
-  obj !== null && typeof obj === "object" && Object.prototype.hasOwnProperty.call(obj, key);
-
-const isPositiveNumber = (v) => typeof v === "number" && Number.isFinite(v) && v > 0;
-
-/** Rundet auf ein 1e-9-Raster, damit keine Fließkomma-Artefakte entstehen (2.9999999999 → 3). */
-export function roundTol(x) {
-  if (!Number.isFinite(x)) return 0;
-  const r = Math.round(x * 1e9) / 1e9;
-  return r === 0 ? 0 : r; // -0 vermeiden
-}
-
-/** Aufgerundete Maschinenzahl mit Toleranz (3.0000000001 → 3); 0 nur, wenn nichts läuft. */
-export function ceilMachines(machines) {
-  if (!(machines > 0)) return 0;
-  return Math.max(1, Math.ceil(machines - EPS));
-}
-
-/** Leistung einer Zeile: ceil(m) × P × (m / ceil(m)) ^ 1.321928. */
-export function rowPower(machines, powerPerMachine) {
-  const n = ceilMachines(machines);
-  if (n === 0 || typeof powerPerMachine !== "number" || !Number.isFinite(powerPerMachine)) return 0;
-  return n * powerPerMachine * Math.pow(machines / n, POWER_EXPONENT);
-}
-
-/** Strom je Maschine bei 100 %: recipe.power ?? buildings[recipe.building].power (sonst 0). */
-export function machinePower(recipe, buildings) {
-  if (recipe && typeof recipe.power === "number" && Number.isFinite(recipe.power)) return recipe.power;
-  const b = recipe && hasOwn(buildings, recipe.building) ? buildings[recipe.building] : null;
-  return b && typeof b.power === "number" && Number.isFinite(b.power) ? b.power : 0;
-}
-
-/** Bereinigte Kopie eines Rezepts mit Netto-Koeffizienten je Item und Durchlauf; null, wenn unbrauchbar. */
-function normalizeRecipe(id, recipe) {
-  if (!recipe || typeof recipe !== "object" || !isPositiveNumber(recipe.duration)) return null;
-  const clean = (list) =>
-    Array.isArray(list)
-      ? list
-          .filter((e) => e && typeof e.item === "string" && isPositiveNumber(e.amount))
-          .map((e) => ({ item: e.item, amount: e.amount }))
-      : [];
-  const inputs = clean(recipe.inputs);
-  const outputs = clean(recipe.outputs);
-  if (outputs.length === 0) return null;
-  const net = new Map();
-  for (const o of outputs) net.set(o.item, (net.get(o.item) ?? 0) + o.amount);
-  for (const i of inputs) net.set(i.item, (net.get(i.item) ?? 0) - i.amount);
-  return {
-    id,
-    building: typeof recipe.building === "string" ? recipe.building : null,
-    duration: recipe.duration,
-    power: recipe.power,
-    inputs,
-    outputs,
-    net,
-  };
-}
+export { EPS, POWER_EXPONENT, roundTol, ceilMachines, rowPower, machinePower, effectiveRecipe };
 
 /** Mengen pro Minute für eine Maschine bei 100 %: { inputs: [{item, rate}], outputs: [{item, rate}] }. */
 export function perMinute(recipe) {
@@ -102,11 +58,6 @@ export function solveLinear(A, b) {
     x[r] = s / M[r][r];
   }
   return x;
-}
-
-/** Leeres Ergebnis (keine gültigen Ziele). */
-function emptyResult() {
-  return { rows: [], raw: [], surplus: [], power: 0, machineCount: 0, tree: [] };
 }
 
 /** Matrix des Systems: Zeile = Item-Gleichung, Spalte = Rezept des jeweiligen Items. */
@@ -167,77 +118,37 @@ function singularItems(active, assign) {
   return (result.length ? result : [...active]).sort(compareIds);
 }
 
-function compareIds(a, b) {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-
-/**
- * Tiefe je Item = längster Pfad von einem Ziel im Graphen „Item → Eingänge seines Rezepts“.
- * Rückwärtskanten (Zyklen) werden per Tiefensuche entfernt, der Rest ist ein DAG.
- */
-function computeDepths(roots, edges) {
-  const state = new Map(); // 1 = auf dem Pfad, 2 = fertig
-  const order = [];
-  const dag = new Map();
-  const visit = (u) => {
-    state.set(u, 1);
-    const kept = [];
-    for (const v of edges.get(u) ?? []) {
-      const s = state.get(v);
-      if (s === 1) continue; // Rückwärtskante
-      kept.push(v);
-      if (s === undefined) visit(v);
-    }
-    dag.set(u, kept);
-    state.set(u, 2);
-    order.push(u);
-  };
-  for (const r of roots) if (!state.has(r)) visit(r);
-  const depth = new Map(roots.map((r) => [r, 0]));
-  for (let i = order.length - 1; i >= 0; i--) {
-    const u = order[i];
-    const du = depth.get(u) ?? 0;
-    for (const v of dag.get(u)) if ((depth.get(v) ?? -1) < du + 1) depth.set(v, du + 1);
-  }
-  return depth;
-}
-
 /**
  * Berechnet die Produktion für die Ziele.
- * @param {{ targets: {item: string, rate: number}[], recipeChoice?: Object<string,string>, data: object }} args
- * @returns Result gemäß SPEC „Solver“ oder { error: "cycle", items }
+ * @param {{ targets: {item: string, rate: number}[], recipeChoice?: Object<string,string>, data: object,
+ *           mods?: { sloops?: Object<string, number>, imports?: string[] } }} args
+ * @returns Result gemäß SPEC „Solver“/„Version 2“ oder { error: "cycle", items }
  */
-export function solve({ targets, recipeChoice, data } = {}) {
+export function solve({ targets, recipeChoice, data, mods } = {}) {
   const items = data && hasOwn(data, "items") && data.items && typeof data.items === "object" ? data.items : {};
   const recipes = data && data.recipes && typeof data.recipes === "object" ? data.recipes : {};
-  const buildings = data && data.buildings && typeof data.buildings === "object" ? data.buildings : {};
   const choice = recipeChoice && typeof recipeChoice === "object" ? recipeChoice : {};
+  const imports = importSet(mods);
 
   // 1. Ziele prüfen: unbekannte Items und Raten ≤ 0 werden ignoriert, gleiche Items summiert.
-  const goals = [];
-  const demand = new Map();
-  for (const t of Array.isArray(targets) ? targets : []) {
-    if (!t || typeof t !== "object" || typeof t.item !== "string" || !hasOwn(items, t.item)) continue;
-    if (!isPositiveNumber(t.rate)) continue;
-    goals.push({ item: t.item, rate: t.rate });
-    demand.set(t.item, (demand.get(t.item) ?? 0) + t.rate);
-  }
+  const { goals, demand } = normalizeTargets(targets, items);
   if (goals.length === 0) return emptyResult();
 
+  // Rohstoffe und Importe werden nie produziert.
   const isRaw = (id) => hasOwn(items, id) && !!items[id] && items[id].raw === true;
   const recipeCache = new Map();
   const getRecipe = (rid) => {
     if (typeof rid !== "string" || !hasOwn(recipes, rid)) return null;
-    if (!recipeCache.has(rid)) recipeCache.set(rid, normalizeRecipe(rid, recipes[rid]));
+    if (!recipeCache.has(rid)) recipeCache.set(rid, effectiveRecipe(rid, data, mods));
     return recipeCache.get(rid);
   };
   const produces = (r, id) => !!r && r.outputs.some((o) => o.item === id);
   const resolved = new Map();
-  // Gewähltes Rezept: recipeChoice (falls gültig und es das Item erzeugt), sonst defaultRecipe. Rohstoffe nie.
+  // Gewähltes Rezept: recipeChoice (falls gültig und es das Item erzeugt), sonst defaultRecipe.
   const recipeFor = (id) => {
     if (resolved.has(id)) return resolved.get(id);
     let r = null;
-    if (hasOwn(items, id) && !isRaw(id)) {
+    if (hasOwn(items, id) && !isRaw(id) && !imports.has(id)) {
       const chosen = hasOwn(choice, id) ? getRecipe(choice[id]) : null;
       if (produces(chosen, id)) r = chosen;
       else {
@@ -249,34 +160,28 @@ export function solve({ targets, recipeChoice, data } = {}) {
     return r;
   };
 
-  // 2. Erreichbare Items sammeln; jedes Nicht-Rohstoff-Item bekommt genau ein Rezept.
+  // 2. Erreichbare Items sammeln; jedes produzierte Item bekommt genau ein Rezept.
   const roots = [...demand.keys()];
   const assign = new Map(); // Item → Rezept (Variable des Systems)
   const owner = new Map(); // Rezept-ID → Item (ein Rezept dient nur einem Item)
-  const edges = new Map(); // Item → Eingangs-Items (für die Tiefe)
   const seen = new Set(roots);
   const queue = [...roots];
   while (queue.length) {
     const id = queue.shift();
-    if (isRaw(id)) continue;
     const r = recipeFor(id);
     if (!r || owner.has(r.id)) continue; // ohne eigenes Rezept: wird bilanziert (raw/surplus)
     owner.set(r.id, id);
     assign.set(id, r);
-    const next = [];
     for (const inp of r.inputs) {
-      if (!next.includes(inp.item)) next.push(inp.item);
       if (!seen.has(inp.item)) {
         seen.add(inp.item);
         queue.push(inp.item);
       }
     }
-    edges.set(id, next);
   }
 
   // 3. Lineares System „Netto je Item = Bedarf“ lösen; negative Raten → Rezept aus, Item als Überschuss.
   let active = [...assign.keys()];
-  const deactivated = new Set();
   let x = [];
   for (;;) {
     if (active.length === 0) {
@@ -292,81 +197,19 @@ export function solve({ targets, recipeChoice, data } = {}) {
       x = sol.map((v) => (Math.abs(v) <= tolX ? 0 : v));
       break;
     }
-    deactivated.add(active[worst]);
     active = active.filter((_, j) => j !== worst);
   }
 
-  // 4. Zeilen, Strom, Maschinen.
-  const depth = computeDepths(roots, edges);
-  const balance = new Map();
-  let maxFlow = 0;
-  for (const v of demand.values()) maxFlow = Math.max(maxFlow, v);
-  const rows = [];
-  let power = 0;
-  let machineCount = 0;
+  // 4. Result aus den Rezeptraten (js/result.js). Abgeschaltete Items behalten ihr Rezept für Baum und Tiefe.
+  const rates = {};
+  const rowItems = {};
   active.forEach((id, j) => {
-    const runs = x[j];
-    if (!(runs > 0)) return;
-    const r = assign.get(id);
-    for (const [k, c] of r.net) balance.set(k, (balance.get(k) ?? 0) + c * runs);
-    const scale = (list) =>
-      list.map((e) => {
-        maxFlow = Math.max(maxFlow, e.amount * runs);
-        return { item: e.item, rate: roundTol(e.amount * runs) };
-      });
-    const machines = (runs * r.duration) / 60;
-    const p = rowPower(machines, machinePower(r, buildings));
-    power += p;
-    machineCount += ceilMachines(machines);
-    rows.push({
-      recipe: r.id,
-      item: id,
-      runsPerMin: roundTol(runs),
-      machines: roundTol(machines),
-      building: r.building,
-      power: roundTol(p),
-      inputs: scale(r.inputs),
-      outputs: scale(r.outputs),
-    });
+    if (!(x[j] > 0)) return;
+    const rid = assign.get(id).id;
+    rates[rid] = x[j];
+    rowItems[rid] = id;
   });
-  rows.sort((a, b) => (depth.get(a.item) ?? 0) - (depth.get(b.item) ?? 0) || compareIds(a.item, b.item));
-
-  // 5. Bilanz aller Items ohne eigene Gleichung: Fehlmenge → raw, Mehrmenge → surplus.
-  const activeSet = new Set(active);
-  const tolFlow = EPS * Math.max(1, maxFlow);
-  const raw = [];
-  const surplus = [];
-  const balanceItems = new Set([...balance.keys(), ...demand.keys()]);
-  for (const id of [...balanceItems].sort(compareIds)) {
-    if (activeSet.has(id)) continue;
-    const net = (balance.get(id) ?? 0) - (demand.get(id) ?? 0);
-    if (net < -tolFlow) {
-      const entry = { item: id, rate: roundTol(-net) };
-      if (!isRaw(id) && !deactivated.has(id)) entry.missingRecipe = true;
-      raw.push(entry);
-    } else if (net > tolFlow) {
-      surplus.push({ item: id, rate: roundTol(net) });
-    }
-  }
-
-  // 6. Baum je Ziel (reine Anzeige, ohne Nebenprodukt-Gutschrift).
-  const buildNode = (id, rate, path) => {
-    const r = recipeFor(id);
-    const node = { item: id, rate: roundTol(rate), recipe: r ? r.id : null, children: [] };
-    if (path.has(id)) {
-      node.cycle = true;
-      return node;
-    }
-    if (!r) return node;
-    let main = 0;
-    for (const o of r.outputs) if (o.item === id) main += o.amount;
-    const runs = rate / main;
-    path.add(id);
-    for (const inp of r.inputs) node.children.push(buildNode(inp.item, inp.amount * runs, path));
-    path.delete(id);
-    return node;
-  };
-  const tree = goals.map((g) => buildNode(g.item, g.rate, new Set()));
-
-  return { rows, raw, surplus, power: roundTol(power), machineCount, tree };
+  const itemRecipes = {};
+  for (const [id, r] of assign) itemRecipes[id] = r.id;
+  return buildResult({ rates, targets: goals, data, mods, rowItems, itemRecipes });
 }
