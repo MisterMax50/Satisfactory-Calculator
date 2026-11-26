@@ -133,7 +133,7 @@ Kontrollraum einer Fabrik. Eine einzige Akzentfarbe, Zahlen in schmaler Beschild
 ### Daten (Erweiterung `data/gamedata.js`, weiterhin generiert)
 - `buildings[id]` zusätzlich: `sloopSlots` (`mProductionShardSlotSize`), `sloopBoost` (`mProductionShardBoostMultiplier`, Verstärkung je Somersloop), `boostPowerExponent` (`mProductionBoostPowerConsumptionExponent`).
 - Neu `extractors`: `{ id, name: {de,en}, kind: "miner" | "pump" | "well", ratePerMin, power, allowed: [itemId] | null, forms: ["solid"|"fluid"|"gas"] }`. `ratePerMin` = `mItemsPerCycle / mExtractCycleTime × 60`, Fluide /1000, gilt für normalen Knoten und 100 %. Miner Mk1–3, Wasserextraktor, Ölextraktor, Ressourcenbrunnen-Extraktor.
-- Neu `pressurizer`: `{ id, name, power }` (Ressourcenbrunnen-Druckerzeuger).
+- Neu `pressurizer`: `{ id, name, power }` (Ressourcenbrunnen-Quellenkompressor).
 - `js/resourceLimits.js` (von Hand gepflegt, nicht generiert): maximale Weltförderung je Rohstoff pro Minute als Richtwert für die Optimierung: Eisenerz 92100, Kalkstein 69900, Kupfererz 36900, Kohle 42300, Cateriumerz 15000, Rohquarz 13500, Schwefel 10800, Bauxit 12300, Uran 2100, SAM 10200, Rohöl 12600, Stickstoffgas 12000, Wasser unbegrenzt.
 
 ### Gemeinsames Ergebnis (`js/result.js`)
@@ -146,7 +146,7 @@ Kontrollraum einer Fabrik. Eine einzige Akzentfarbe, Zahlen in schmaler Beschild
 `computeExtraction({ raw, settings, data }) → { rows: [{ item, rate, extractor, purity, clock, count, clockEffective, power, pressurizers }], power }`.
 - Reinheit: unrein 0,5 / normal 1 / rein 2. Wasserextraktor ohne Reinheit (immer 1).
 - `count = ceil(rate / (ratePerMin × Reinheit × maxClock))`, `clockEffective = rate / (count × ratePerMin × Reinheit)`, `power = count × P × clockEffective ^ 1.321928`. `maxClock` 1–250 %.
-- Ressourcenbrunnen: `count` = Satelliten-Extraktoren (0 MW), zusätzlich `pressurizers` (Eingabe, Standard `ceil(count / 4)`, als Schätzung gekennzeichnet) × 150 MW, nicht getaktet.
+- Ressourcenbrunnen: `count` = Satelliten-Extraktoren (0 MW), zusätzlich Quellenkompressoren `pressurizers` (Eingabe, Standard `ceil(count / 4)`, als Schätzung gekennzeichnet) × 150 MW, nicht getaktet.
 - Standard je Rohstoff: fest → Miner Mk.2, Wasser → Wasserextraktor, Rohöl → Ölextraktor, Stickstoff → Ressourcenbrunnen; Reinheit normal; maxClock 100 %. Wählbar sind nur Förderanlagen, deren `allowed`/`forms` passt (Wasser und Öl auch per Brunnen).
 - Importierte Items und Items ohne Rezept haben keine Förderung.
 
@@ -171,7 +171,7 @@ Kontrollraum einer Fabrik. Eine einzige Akzentfarbe, Zahlen in schmaler Beschild
 - **Rezepte**: Segment „Manuell | Optimiert“ oben im Bereich. Manuell wie bisher. Optimiert: Auswahl Ziel („Rohstoffe sparen“ / „Strom sparen“), Kontrollkästchen „Alternativrezepte verwenden“, Liste der genutzten Rezepte je Item (Text, mehrere pro Item möglich) mit Textknopf „Ausschließen“; darunter ausgeschlossene Rezepte mit „Wieder erlauben“.
 - **Produktionsliste**: In der Maschinenspalte unter dem Schild ein kleines Select „Somersloops 0…n“ (nur wenn `sloopSlots > 0`); bei n > 0 Zusatz „+100 % Ausstoß · 6 Somersloops“ in Akzent. In der Produktspalte Textknopf „Zuliefern“ (Item wird Import). Somersloops werden im optimierten Modus ebenfalls berücksichtigt.
 - **Kennzahlen**: Strom = Produktion + Förderung, darunter klein „davon Förderung 120 MW“. Fünfte Kachel „Somersloops“ nur wenn > 0.
-- **Rohstoffe**: Tabelle Rohstoff · Menge · Förderanlage (Select) · Reinheit (Select, beim Wasserextraktor ausgeblendet) · Max. Takt (Zahl 1–250 %) · Ergebnis („4 × Miner Mk.2 bei 93,75 %“) · Strom; bei Brunnen Zahlenfeld „Druckerzeuger“. Summenzeile. Darunter „Zugeliefert“: importierte Items mit Menge und Knopf „Selbst herstellen“. Darunter Überschuss wie bisher.
+- **Rohstoffe**: Tabelle Rohstoff · Menge · Förderanlage (Select) · Reinheit (Select, beim Wasserextraktor ausgeblendet) · Max. Takt (Zahl 1–250 %) · Ergebnis („4 × Miner Mk.2 bei 93,75 %“) · Strom; bei Brunnen Zahlenfeld „Quellenkompressoren“. Summenzeile. Darunter „Zugeliefert“: importierte Items mit Menge und Knopf „Selbst herstellen“. Darunter Überschuss wie bisher.
 - **Fluss**: vierter Reiter. Maschinenknoten 200 × 56 px im Stil der Maschinenschilder (Fläche erhöht, 1px Akzentrahmen, Radius 4px, oben `3 × Konstruktor`, darunter Itemname gedämpft). Quellknoten: gestrichelter Rahmen in Linienfarbe. Ziel- und Überschussknoten: Rahmen Akzent bzw. gedämpft. Kanten 1,5px: Stückgut in gedämpfter Textfarbe, Fluide in Rohrblau; Beschriftung „Eisenbarren 30 /min“ mittig auf Flächenfarbe. Hover/Fokus auf Knoten hebt seine Kanten in Akzent hervor. Steuerknöpfe oben rechts im Graph.
 - **Fehler** `infeasible`: Banner wie beim Zyklus: „Mit den erlaubten Rezepten lässt sich {items} nicht herstellen. Erlaube Alternativrezepte oder weniger Ausschlüsse.“
 

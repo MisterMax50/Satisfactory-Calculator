@@ -12,6 +12,7 @@
 - `js/solver.js` — Produktionsberechnung, rein
 - `js/state.js` — Zustand, URL-Hash, localStorage-Pläne
 - `js/i18n.js` — UI-Texte de/en, Zahlenformat
+- `js/resourceLimits.js` — max. Weltförderung je Rohstoff/min (Richtwerte, von Hand gepflegt), für den Optimierer
 - `js/ui/dom.js` — `h()`-Elementhelfer ohne innerHTML, Fokus-Erhalt über Neu-Rendern (`data-fkey`)
 - `js/ui/common.js` — Itemnamen, Mengen mit Fluid-Markierung, Rezeptnamen ohne Alternativ-Präfix
 - `js/ui/header.js` — App-Titel und Sprachumschalter DE | EN

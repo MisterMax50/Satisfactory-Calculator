@@ -21,6 +21,18 @@ VARIABLE_POWER_NATIVE_CLASS = "FGBuildableManufacturerVariablePower"
 FORMS = {"RF_SOLID": "solid", "RF_LIQUID": "fluid", "RF_GAS": "gas"}
 FLUID_FORMS = ("fluid", "gas")
 
+# Foerderanlagen: NativeClass -> Funktion (id, forms) -> kind.
+EXTRACTOR_NATIVE_CLASSES = {
+    "FGBuildableResourceExtractor": lambda eid, forms: "pump" if forms and all(f in FLUID_FORMS for f in forms) else "miner",
+    "FGBuildableWaterPump": lambda eid, forms: "pump",
+    "FGBuildableFrackingExtractor": lambda eid, forms: "well",
+}
+# Somersloop-Override {Gebaeude-ID: (Plaetze, Boost je Somersloop)}. Quelle:
+# satisfactory.wiki.gg/wiki/Production_amplification. Der Docs-Wert 0 beim Schmelzofen ist ein nicht gesetzter Default.
+SLOOP_OVERRIDES = {"Build_SmelterMk1_C": (1, 1.0)}
+FORM_RE = re.compile(r"RF_\w+")
+ALLOWED_RE = re.compile(r"\.(\w+)'")
+
 ITEM_RE = re.compile(r"ItemClass=\"[^\"]*?\.(\w+)'\",Amount=(\d+)")
 PRODUCED_IN_RE = re.compile(r"\.(\w+)\"")
 
@@ -98,7 +110,17 @@ def main():
                 power = float(c["mPowerConsumption"])
             if bid not in de_names:
                 fail(f"Gebaeude {bid} fehlt in de.json")
-            buildings[bid] = {"id": bid, "name": {"de": de_names[bid], "en": c["mDisplayName"]}, "power": num(power)}
+            slots, boost = num(c["mProductionShardSlotSize"]), num(c["mProductionShardBoostMultiplier"])
+            if bid in SLOOP_OVERRIDES:
+                slots, boost = (num(v) for v in SLOOP_OVERRIDES[bid])
+            buildings[bid] = {
+                "id": bid,
+                "name": {"de": de_names[bid], "en": c["mDisplayName"]},
+                "power": num(power),
+                "sloopSlots": slots,
+                "sloopBoost": boost,
+                "boostPowerExponent": num(c["mProductionBoostPowerConsumptionExponent"]),
+            }
 
     # --- Rezepte ---
     de_recipes = {c["ClassName"]: c for c in de["FGRecipe"]}
@@ -160,6 +182,46 @@ def main():
             "defaultRecipe": None,
         }
 
+    # --- Foerderanlagen (Miner, Pumpen, Ressourcenbrunnen) und Druckerzeuger ---
+    extractors = {}
+    for native, kind_of in EXTRACTOR_NATIVE_CLASSES.items():
+        de_names = {c["ClassName"]: c["mDisplayName"] for c in de.get(native, [])}
+        for c in en.get(native, []):
+            eid = c["ClassName"]
+            if eid not in de_names:
+                fail(f"Foerderanlage {eid} fehlt in de.json")
+            forms = []
+            for f in FORM_RE.findall(c["mAllowedResourceForms"]):
+                if f in FORMS and FORMS[f] not in forms:
+                    forms.append(FORMS[f])
+            rate = float(c["mItemsPerCycle"]) / float(c["mExtractCycleTime"]) * 60
+            if any(f in FLUID_FORMS for f in forms):
+                rate /= 1000
+            allowed = None
+            if c["mOnlyAllowCertainResources"] == "True":
+                allowed = [i for i in ALLOWED_RE.findall(c["mAllowedResources"]) if i in items]
+            extractors[eid] = {
+                "id": eid,
+                "name": {"de": de_names[eid], "en": c["mDisplayName"]},
+                "kind": kind_of(eid, forms),
+                "ratePerMin": num(rate),
+                "power": num(c["mPowerConsumption"]),
+                "allowed": allowed,
+                "forms": forms,
+            }
+    pressurizer = None
+    for c in en.get("FGBuildableFrackingActivator", []):
+        de_names = {d["ClassName"]: d["mDisplayName"] for d in de.get("FGBuildableFrackingActivator", [])}
+        if c["ClassName"] not in de_names:
+            fail(f"Druckerzeuger {c['ClassName']} fehlt in de.json")
+        pressurizer = {
+            "id": c["ClassName"],
+            "name": {"de": de_names[c["ClassName"]], "en": c["mDisplayName"]},
+            "power": num(c["mPowerConsumption"]),
+        }
+    if not extractors or pressurizer is None:
+        fail("Foerderanlagen/Druckerzeuger nicht gefunden")
+
     # --- defaultRecipe (Stufen laut SPEC; nur Rezepte mit dem Item als erstem Output, nie Entpack-Rezepte) ---
     by_first_output = {}
     for rid in sorted(recipes):
@@ -196,7 +258,9 @@ def main():
         '  version: "1.0",\n'
         + block("items", items) + ",\n"
         + block("recipes", recipes) + ",\n"
-        + block("buildings", buildings) + "\n"
+        + block("buildings", buildings) + ",\n"
+        + block("extractors", extractors) + ",\n"
+        + f"  pressurizer: {json.dumps(pressurizer, ensure_ascii=False)}\n"
         "};\n"
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)

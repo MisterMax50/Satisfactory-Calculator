@@ -465,16 +465,25 @@ export default {
     "Recipe_XmasWreath_C": {"id": "Recipe_XmasWreath_C", "name": {"de": "FICSMAS-Kranz", "en": "FICSMAS Wreath"}, "alternate": false, "building": "Build_AssemblerMk1_C", "duration": 60, "inputs": [{"item": "Desc_XmasBranch_C", "amount": 15}, {"item": "Desc_XmasBallCluster_C", "amount": 6}], "outputs": [{"item": "Desc_XmasWreath_C", "amount": 2}]}
   },
   buildings: {
-    "Build_AssemblerMk1_C": {"id": "Build_AssemblerMk1_C", "name": {"de": "Fabrikator", "en": "Assembler"}, "power": 15},
-    "Build_Blender_C": {"id": "Build_Blender_C", "name": {"de": "Mixer", "en": "Blender"}, "power": 75},
-    "Build_ConstructorMk1_C": {"id": "Build_ConstructorMk1_C", "name": {"de": "Konstruktor", "en": "Constructor"}, "power": 4},
-    "Build_Converter_C": {"id": "Build_Converter_C", "name": {"de": "Konverter", "en": "Converter"}, "power": 250},
-    "Build_FoundryMk1_C": {"id": "Build_FoundryMk1_C", "name": {"de": "Gießerei", "en": "Foundry"}, "power": 16},
-    "Build_HadronCollider_C": {"id": "Build_HadronCollider_C", "name": {"de": "Teilchenbeschleuniger", "en": "Particle Accelerator"}, "power": 875},
-    "Build_ManufacturerMk1_C": {"id": "Build_ManufacturerMk1_C", "name": {"de": "Manufaktor", "en": "Manufacturer"}, "power": 55},
-    "Build_OilRefinery_C": {"id": "Build_OilRefinery_C", "name": {"de": "Raffinerie", "en": "Refinery"}, "power": 30},
-    "Build_Packager_C": {"id": "Build_Packager_C", "name": {"de": "Umfüllanlage", "en": "Packager"}, "power": 10},
-    "Build_QuantumEncoder_C": {"id": "Build_QuantumEncoder_C", "name": {"de": "Quantenkodierer", "en": "Quantum Encoder"}, "power": 1000},
-    "Build_SmelterMk1_C": {"id": "Build_SmelterMk1_C", "name": {"de": "Schmelzofen", "en": "Smelter"}, "power": 4}
-  }
+    "Build_AssemblerMk1_C": {"id": "Build_AssemblerMk1_C", "name": {"de": "Fabrikator", "en": "Assembler"}, "power": 15, "sloopSlots": 2, "sloopBoost": 0.5, "boostPowerExponent": 2},
+    "Build_Blender_C": {"id": "Build_Blender_C", "name": {"de": "Mixer", "en": "Blender"}, "power": 75, "sloopSlots": 4, "sloopBoost": 0.25, "boostPowerExponent": 2},
+    "Build_ConstructorMk1_C": {"id": "Build_ConstructorMk1_C", "name": {"de": "Konstruktor", "en": "Constructor"}, "power": 4, "sloopSlots": 1, "sloopBoost": 1, "boostPowerExponent": 2},
+    "Build_Converter_C": {"id": "Build_Converter_C", "name": {"de": "Konverter", "en": "Converter"}, "power": 250, "sloopSlots": 2, "sloopBoost": 0.5, "boostPowerExponent": 2},
+    "Build_FoundryMk1_C": {"id": "Build_FoundryMk1_C", "name": {"de": "Gießerei", "en": "Foundry"}, "power": 16, "sloopSlots": 2, "sloopBoost": 0.5, "boostPowerExponent": 2},
+    "Build_HadronCollider_C": {"id": "Build_HadronCollider_C", "name": {"de": "Teilchenbeschleuniger", "en": "Particle Accelerator"}, "power": 875, "sloopSlots": 4, "sloopBoost": 0.25, "boostPowerExponent": 2},
+    "Build_ManufacturerMk1_C": {"id": "Build_ManufacturerMk1_C", "name": {"de": "Manufaktor", "en": "Manufacturer"}, "power": 55, "sloopSlots": 4, "sloopBoost": 0.25, "boostPowerExponent": 2},
+    "Build_OilRefinery_C": {"id": "Build_OilRefinery_C", "name": {"de": "Raffinerie", "en": "Refinery"}, "power": 30, "sloopSlots": 2, "sloopBoost": 0.5, "boostPowerExponent": 2},
+    "Build_Packager_C": {"id": "Build_Packager_C", "name": {"de": "Umfüllanlage", "en": "Packager"}, "power": 10, "sloopSlots": 0, "sloopBoost": 1, "boostPowerExponent": 2},
+    "Build_QuantumEncoder_C": {"id": "Build_QuantumEncoder_C", "name": {"de": "Quantenkodierer", "en": "Quantum Encoder"}, "power": 1000, "sloopSlots": 4, "sloopBoost": 0.25, "boostPowerExponent": 2},
+    "Build_SmelterMk1_C": {"id": "Build_SmelterMk1_C", "name": {"de": "Schmelzofen", "en": "Smelter"}, "power": 4, "sloopSlots": 1, "sloopBoost": 1, "boostPowerExponent": 2}
+  },
+  extractors: {
+    "Build_FrackingExtractor_C": {"id": "Build_FrackingExtractor_C", "name": {"de": "Quellenextraktor", "en": "Resource Well Extractor"}, "kind": "well", "ratePerMin": 60, "power": 0, "allowed": ["Desc_LiquidOil_C", "Desc_NitrogenGas_C", "Desc_Water_C"], "forms": ["fluid", "gas"]},
+    "Build_MinerMk1_C": {"id": "Build_MinerMk1_C", "name": {"de": "Miner Mk.1", "en": "Miner Mk.1"}, "kind": "miner", "ratePerMin": 60, "power": 5, "allowed": null, "forms": ["solid"]},
+    "Build_MinerMk2_C": {"id": "Build_MinerMk2_C", "name": {"de": "Miner Mk.2", "en": "Miner Mk.2"}, "kind": "miner", "ratePerMin": 120, "power": 15, "allowed": null, "forms": ["solid"]},
+    "Build_MinerMk3_C": {"id": "Build_MinerMk3_C", "name": {"de": "Miner Mk.3", "en": "Miner Mk.3"}, "kind": "miner", "ratePerMin": 240, "power": 45, "allowed": null, "forms": ["solid"]},
+    "Build_OilPump_C": {"id": "Build_OilPump_C", "name": {"de": "Ölpumpe", "en": "Oil Extractor"}, "kind": "pump", "ratePerMin": 120, "power": 40, "allowed": ["Desc_LiquidOil_C"], "forms": ["fluid"]},
+    "Build_WaterPump_C": {"id": "Build_WaterPump_C", "name": {"de": "Wasserextraktor", "en": "Water Extractor"}, "kind": "pump", "ratePerMin": 120, "power": 20, "allowed": ["Desc_Water_C"], "forms": ["fluid"]}
+  },
+  pressurizer: {"id": "Build_FrackingSmasher_C", "name": {"de": "Quellenkompressor", "en": "Resource Well Pressurizer"}, "power": 150}
 };
