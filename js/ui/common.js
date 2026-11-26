@@ -1,0 +1,44 @@
+// common.js — gemeinsame Anzeige-Bausteine: Itemnamen, Mengen mit Fluid-Markierung, Rezeptnamen.
+import { h } from "./dom.js";
+import { t, localName, formatRate } from "../i18n.js";
+
+export const isFluid = (item) => !!item && (item.form === "fluid" || item.form === "gas");
+
+export function itemLabel(data, id) {
+  return localName(data.items[id]) || id;
+}
+
+export function unitFor(item) {
+  return isFluid(item) ? t("unit.m3PerMin") : t("unit.perMin");
+}
+
+/** 8px-Quadrat in Rohrblau vor Fluid-Namen/-Mengen, bei Stückgut nichts. */
+export function fluidMark(item) {
+  return isFluid(item) ? h("span", { class: "fluid-mark", "aria-hidden": "true" }) : null;
+}
+
+/** Itemname, bei Fluiden mit Markierung. */
+export function nameNode(data, id) {
+  const item = data.items[id];
+  return h("span", { class: "item-name" }, fluidMark(item), itemLabel(data, id));
+}
+
+/** Menge mit Einheit („120 /min“ bzw. „30 m³/min“), optional mit Fluid-Markierung. */
+export function qtyNode(data, id, rate, withMark = false) {
+  const item = data.items[id];
+  return h("span", { class: "num" }, withMark ? fluidMark(item) : null, formatRate(rate, item ? item.form : "solid"));
+}
+
+/** Name + Menge in einer Zeile (Eingänge/Ausgänge, Rohstoff-Kachel). */
+export function flowNode(data, id, rate, cls = "flow") {
+  return h("span", { class: cls }, nameNode(data, id), " ", qtyNode(data, id, rate));
+}
+
+/** Rezeptname ohne Präfix „Alternate: “ / „Alternativ: “. */
+export function recipeName(recipe) {
+  return localName(recipe).replace(/^\s*(Alternate|Alternativ)\s*:\s*/i, "");
+}
+
+export function isUnpackage(recipeId) {
+  return recipeId.startsWith("Recipe_Unpackage");
+}

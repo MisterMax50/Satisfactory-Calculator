@@ -18,9 +18,9 @@ Prüfung: alle Tests grün im Browser-Runner.
 `js/state.js` gemäß SPEC „Zustand“: `encodeState/decodeState` (base64url, UTF-8-sicher), `loadInitialState()`, `saveLast()`, Plan-CRUD, kleiner Event-Mechanismus `subscribe(fn)` / `update(patch)`. `js/i18n.js`: alle UI-Texte de/en (Liste in SPEC „Abläufe“/„Design“), `t(key)`, `itemName(item)`, `formatNumber(n)`. `tests/state.test.js`: Roundtrip, kaputter Hash, Umlaute.
 Prüfung: Tests grün.
 
-## 5. Oberfläche — Careful — nach 2, 3, 4 — [ ]
+## 5. Oberfläche — Careful — nach 2, 3, 4 — [x]
 `js/ui/*` und `js/main.js`: Layout, Ziele mit Item-Suche, Rezeptauswahl, Kennzahlenleiste, Reiter Produktionsliste/Baum/Rohstoffe, Sprache, Link kopieren, Pläne speichern/laden/löschen — exakt nach SPEC „Design“ und „Abläufe“. Responsiv bis 390px.
 Prüfung: Beispielplan 5 Modulare Rahmen/min manuell nachgerechnet; Screenshots 1440px und 390px; keine Konsolenfehler.
 
-## 6. Abnahme — Orchestrator — nach 5 — [ ]
+## 6. Abnahme — Orchestrator — nach 5 — [x]
 Review, Gegenrechnung, Commit.

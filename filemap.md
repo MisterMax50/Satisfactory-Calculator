@@ -12,7 +12,17 @@
 - `js/solver.js` — Produktionsberechnung, rein
 - `js/state.js` — Zustand, URL-Hash, localStorage-Pläne
 - `js/i18n.js` — UI-Texte de/en, Zahlenformat
-- `js/ui/README.md` — Rendering der Bereiche (Platzhalter)
+- `js/ui/dom.js` — `h()`-Elementhelfer ohne innerHTML, Fokus-Erhalt über Neu-Rendern (`data-fkey`)
+- `js/ui/common.js` — Itemnamen, Mengen mit Fluid-Markierung, Rezeptnamen ohne Alternativ-Präfix
+- `js/ui/header.js` — App-Titel und Sprachumschalter DE | EN
+- `js/ui/search.js` — Item-Suche als Combobox (max. 12 Treffer, Tastatur)
+- `js/ui/targets.js` — Bereich „Ziele“: Zielzeilen mit Mengenfeld, Entfernen, Suche
+- `js/ui/recipes.js` — Bereich „Rezepte“: Rezeptauswahl je Item im Ergebnis
+- `js/ui/plans.js` — „Link kopieren“ und gespeicherte Pläne (speichern/laden/löschen)
+- `js/ui/results.js` — Inhaltsbereich: leerer Zustand, Zyklus-Fehler, Kennzahlen, Reiter
+- `js/ui/production.js` — Reiter „Produktionsliste“ (Tabelle, schmal gestapelt)
+- `js/ui/tree.js` — Reiter „Baum“ (verschachtelte details)
+- `js/ui/rawview.js` — Reiter „Rohstoffe“ mit Überschuss-Tabelle
 - `tests/index.html` — Browser-Testrunner (Testliste)
 - `tests/runner.js` — Mini-Testrunner (`test`, `assertEqual`, `assertClose`, `assertThrows`)
 - `tests/example.test.js` — Beispieltest
