@@ -7,12 +7,15 @@ import { productionTable } from "./production.js";
 import { treeView } from "./tree.js";
 import { rawView } from "./rawview.js";
 import { flowTab } from "./flow.js";
+import { progressView } from "./progress.js";
 
 const TABS = [
   { id: "list", label: "tabs.list", view: productionTable },
   { id: "tree", label: "tabs.tree", view: treeView },
   { id: "raw", label: "tabs.raw", view: rawView },
   { id: "flow", label: "tabs.flow", view: flowTab },
+  // Spielstand ist auch ohne Ergebnis bedienbar und arbeitet auf den vollen Spieldaten.
+  { id: "progress", label: "tabs.progress", view: (result, data, ctx) => progressView(ctx.state, ctx.allData), always: true },
 ];
 
 // Gewählter Reiter lebt nur in der Sitzung (wird nicht gespeichert).
@@ -107,7 +110,11 @@ function tabs(result, data, ctx) {
       ),
     );
     panels.push(
-      h("div", { role: "tabpanel", class: "panel", id: `panel-${tab.id}`, "aria-labelledby": `tab-${tab.id}`, tabindex: "0" }, tab.view(result, data, ctx)),
+      h(
+        "div",
+        { role: "tabpanel", class: "panel", id: `panel-${tab.id}`, "aria-labelledby": `tab-${tab.id}`, tabindex: "0" },
+        ctx.message && !tab.always ? null : tab.view(result, data, ctx),
+      ),
     );
   }
   const list = h("div", { role: "tablist", class: "tablist", "aria-label": t("tabs.label") }, tabEls);
@@ -115,22 +122,20 @@ function tabs(result, data, ctx) {
   return [list, ...panels];
 }
 
-export function renderResults(root, state, result, extraction, data) {
+// data: Spieldaten ohne gesperrte Rezepte; allData: volle Spieldaten (für den Reiter „Spielstand“).
+export function renderResults(root, state, result, extraction, data, allData = data) {
   clear(root);
+  const ctx = { state, extraction, allData };
   if (!state.targets.length) {
     lastError = null;
-    root.append(h("div", { class: "empty" }, h("p", {}, t("empty.state"))));
-    return;
-  }
-  if (result.error) {
+    ctx.message = h("div", { class: "empty" }, h("p", {}, t("empty.state")));
+  } else if (result.error) {
     const items = (result.items || []).map((id) => itemLabel(data, id)).join(", ");
     const key = `${result.error}:${(result.items || []).join(",")}`;
     // Nur beim ersten Auftreten ansagen, nicht bei jedem Neu-Rendern.
-    root.append(h("div", { class: "banner", role: lastError === key ? null : "alert" }, t(ERROR_KEYS[result.error] || "error.cycle", { items })));
+    ctx.message = h("div", { class: "banner", role: lastError === key ? null : "alert" }, t(ERROR_KEYS[result.error] || "error.cycle", { items }));
     lastError = key;
-    return;
-  }
-  lastError = null;
-  const ctx = { state, extraction };
-  root.append(kpiBar(result, extraction, data), ...tabs(result, data, ctx));
+  } else lastError = null;
+  // Ohne Ergebnis: Hinweis statt Kennzahlen, Ergebnis-Reiter bleiben leer.
+  root.append(ctx.message || kpiBar(result, extraction, data), ...tabs(result, data, ctx));
 }

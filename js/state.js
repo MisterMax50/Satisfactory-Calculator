@@ -24,6 +24,7 @@ export function defaultState() {
     imports: [],
     extraction: {},
     available: {},
+    progress: { tier: null, alternates: null },
   };
 }
 
@@ -126,6 +127,13 @@ function migrate(s) {
     }
     out.available = { ...s.available };
   }
+  if (s.progress !== undefined) {
+    const p = s.progress;
+    if (!isObj(p)) return null;
+    if (p.tier != null && !(Number.isInteger(p.tier) && p.tier >= 0 && p.tier <= 9)) return null;
+    if (p.alternates != null && !isStrArray(p.alternates)) return null;
+    out.progress = { tier: p.tier ?? null, alternates: p.alternates ? [...p.alternates] : null };
+  }
   return out;
 }
 
@@ -150,6 +158,7 @@ export function encodeState(state) {
   if (full.imports && full.imports.length) out.imports = full.imports;
   if (full.extraction && Object.keys(full.extraction).length) out.extraction = full.extraction;
   if (full.available && Object.keys(full.available).length) out.available = full.available;
+  if (full.progress && (full.progress.tier != null || full.progress.alternates)) out.progress = full.progress;
   return toBase64Url(JSON.stringify(out));
 }
 
@@ -275,7 +284,8 @@ export function createStore({ storage, location, history } = {}) {
   function loadPlan(name) {
     const plan = listPlans().find((p) => p.name === name);
     if (!plan) return null;
-    commit(plan.state);
+    // Der Spielstand gehört zum Spieler, nicht zum Plan: beim Laden bleibt der aktuelle erhalten.
+    commit({ ...plan.state, progress: state.progress });
     return state;
   }
 

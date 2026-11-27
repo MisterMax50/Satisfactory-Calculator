@@ -35,6 +35,7 @@ ALLOWED_RE = re.compile(r"\.(\w+)'")
 
 ITEM_RE = re.compile(r"ItemClass=\"[^\"]*?\.(\w+)'\",Amount=(\d+)")
 PRODUCED_IN_RE = re.compile(r"\.(\w+)\"")
+UNLOCK_RECIPE_RE = re.compile(r"\.(Recipe_\w+_C)\b")
 
 
 def fail(msg):
@@ -122,6 +123,17 @@ def main():
                 "boostPowerExponent": num(c["mProductionBoostPowerConsumptionExponent"]),
             }
 
+    # --- Freischalt-Tier je Rezept: kleinstes mTechTier der Schematics (Meilenstein, MAM, ...),
+    # die es freischalten; Festplatten-Schematics (EST_Alternate) zaehlen nur, wenn es keine anderen gibt.
+    unlock_tiers = {}
+    for s in en.get("FGSchematic", []):
+        for rid in set(UNLOCK_RECIPE_RE.findall(json.dumps(s.get("mUnlocks", "")))):
+            unlock_tiers.setdefault(rid, []).append((s["mType"] == "EST_Alternate", int(s["mTechTier"])))
+
+    def unlock_tier(rid):
+        found = sorted(unlock_tiers.get(rid, []))  # False (kein Festplatten-Schematic) zuerst
+        return found[0][1] if found else 0
+
     # --- Rezepte ---
     de_recipes = {c["ClassName"]: c for c in de["FGRecipe"]}
     recipes, used_items = {}, set()
@@ -157,6 +169,7 @@ def main():
             # Recipe_PureAluminumIngot_C ist alternativ): massgeblich ist der Praefix des englischen Namens.
             "alternate": c["mDisplayName"].startswith("Alternate:"),
             "building": building[0],
+            "tier": unlock_tier(rid),
             "duration": num(duration),
             "inputs": convert(ins),
             "outputs": convert(outs),

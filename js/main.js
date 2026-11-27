@@ -3,6 +3,7 @@ import data from "../data/gamedata.js";
 import { solve } from "./solver.js";
 import { optimize } from "./optimizer.js";
 import { computeExtraction } from "./extraction.js";
+import { applyProgress } from "./progress.js";
 import { loadInitialState, subscribe } from "./state.js";
 import { setLang, t } from "./i18n.js";
 import { captureFocus, restoreFocus } from "./ui/dom.js";
@@ -22,14 +23,23 @@ const plansView = createPlans(els.plans);
 let lastKey = null;
 let lastResult = null;
 
-function compute(state) {
+// Spieldaten ohne gesperrte Rezepte, neu nur bei geändertem Spielstand.
+let lastProgress = null;
+let progressData = data;
+function dataFor(state) {
+  const key = JSON.stringify(state.progress);
+  if (key !== lastProgress) [lastProgress, progressData] = [key, applyProgress(data, state.progress)];
+  return progressData;
+}
+
+function compute(state, data) {
   const targets = state.targets.map(([item, rate]) => ({ item, rate }));
   const mods = { sloops: state.sloops, imports: state.imports };
   const optimized = state.mode === "optimized";
   const key = JSON.stringify(
     optimized
-      ? [state.mode, targets, state.objective, state.allowAlternates, state.excluded, mods, state.available]
-      : [state.mode, targets, state.recipes, mods],
+      ? [state.mode, targets, state.objective, state.allowAlternates, state.excluded, mods, state.available, state.progress]
+      : [state.mode, targets, state.recipes, mods, state.progress],
   );
   if (key === lastKey) return lastResult;
   const result = optimized
@@ -40,7 +50,7 @@ function compute(state) {
   return result;
 }
 
-function extractionFor(state, result) {
+function extractionFor(state, result, data) {
   if (result.error) return { rows: [], power: 0 };
   const raw = result.raw.filter((e) => !e.imported && !e.missingRecipe);
   return computeExtraction({ raw, settings: state.extraction, data });
@@ -51,13 +61,14 @@ function render(state) {
   setLang(state.lang);
   document.documentElement.lang = state.lang;
   document.title = t("app.title");
-  const result = compute(state);
-  const extraction = extractionFor(state, result);
+  const pdata = dataFor(state);
+  const result = compute(state, pdata);
+  const extraction = extractionFor(state, result, pdata);
   renderHeader(els.head, state);
   targetsView.render(state);
-  renderRecipes(els.recipes, state, result, data);
+  renderRecipes(els.recipes, state, result, pdata);
   plansView.render(state);
-  renderResults(els.content, state, result, extraction, data);
+  renderResults(els.content, state, result, extraction, pdata, data);
   restoreFocus(focus);
 }
 

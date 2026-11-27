@@ -48,3 +48,6 @@ Rezepte-Modus, Somersloop-Auswahl, „Zuliefern“, Kennzahlen, Rohstoffe-Tabell
 
 ## 13. README — Light — nach 12 — [x]
 `README.md` und `docs/screenshot.png` laut SPEC „README“.
+
+## 14. Spielstand — Medium — nach 12 — [x]
+`tier` je Rezept in `tools/extract_gamedata.py`, `js/progress.js`, Zustand `progress`, Reiter „Spielstand“ (SPEC „Spielstand“). Tests für Filter und Zustand.

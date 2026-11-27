@@ -50,6 +50,7 @@ const sample = {
   imports: [],
   extraction: {},
   available: {},
+  progress: { tier: null, alternates: null },
 };
 const full = {
   v: 2,
@@ -67,6 +68,7 @@ const full = {
     Desc_NitrogenGas_C: { extractor: "well", purity: "impure", maxClock: 1, pressurizers: 3 },
   },
   available: { Desc_OreIron_C: 480, Desc_Coal_C: 120.5 },
+  progress: { tier: 4, alternates: ["Recipe_Alternate_CastScrew_C"] },
 };
 
 test("encode/decode Roundtrip mit Umlauten und Emoji", () => {
@@ -199,6 +201,21 @@ test("v2: Ziel max und ungültige vorhandene Rohstoffe", () => {
   assertEqual(decodeState(encodeState(max)), max);
   assertEqual(decodeState(encodeState({ ...full, available: { Desc_OreIron_C: -1 } })), null);
   assertEqual(decodeState(encodeState({ ...full, available: { Desc_OreIron_C: "5" } })), null);
+});
+
+test("Spielstand: ungültige Werte werden abgelehnt", () => {
+  for (const progress of [{ tier: 10, alternates: null }, { tier: 1.5, alternates: null }, { tier: null, alternates: [1] }, "x"]) {
+    assertEqual(decodeState(encodeState({ ...full, progress })), null, JSON.stringify(progress));
+  }
+});
+
+test("Spielstand bleibt beim Laden eines Plans erhalten", () => {
+  const { s } = mk();
+  s.loadInitialState();
+  s.update(sample);
+  s.savePlan("p");
+  s.update({ progress: { tier: 2, alternates: [] } });
+  assertEqual(s.loadPlan("p").progress, { tier: 2, alternates: [] });
 });
 
 test("v2: Roundtrip mit allen Feldern", () => {

@@ -8,11 +8,13 @@ import { update } from "../state.js";
 import { itemLabel, recipeName, isUnpackage, unitFor } from "./common.js";
 
 let byItem = null;
+let byItemData = null;
 
 /** Rezepte je Item (erster Output), ohne Entpack-Rezepte. */
 function recipesByItem(data) {
-  if (byItem) return byItem;
+  if (byItem && byItemData === data) return byItem;
   byItem = new Map();
+  byItemData = data;
   for (const r of Object.values(data.recipes)) {
     const first = r.outputs && r.outputs[0];
     if (!first || isUnpackage(r.id)) continue;

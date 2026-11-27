@@ -167,7 +167,7 @@ Ziel `"max"` („Vorhandene Rohstoffe ausnutzen“): `available: { rawId: rate }
 - Darstellung SVG: verschieben per Ziehen, Zoom per Mausrad (zum Cursor) und Knöpfe „+“, „−“, „Einpassen“; Tastatur +/−/Pfeile, wenn der Graph fokussiert ist.
 
 ### Zustand v2
-`{ v: 2, targets, recipes, lang, mode: "manual" | "optimized", objective: "resources" | "power" | "max", allowAlternates: true, excluded: [recipeId], sloops: { recipeId: n }, imports: [itemId], extraction: { itemId: { extractor, purity, maxClock, pressurizers? } }, available: { itemId: rate } }`. v1-Hashes und -Pläne werden beim Laden zu v2 migriert (fehlende Felder mit Standardwerten).
+`{ v: 2, targets, recipes, lang, mode: "manual" | "optimized", objective: "resources" | "power" | "max", allowAlternates: true, excluded: [recipeId], sloops: { recipeId: n }, imports: [itemId], extraction: { itemId: { extractor, purity, maxClock, pressurizers? } }, available: { itemId: rate }, progress: { tier: 0–9 | null, alternates: [recipeId] | null } }`. v1-Hashes und -Pläne werden beim Laden zu v2 migriert (fehlende Felder mit Standardwerten).
 
 ### Oberfläche v2
 - **Rezepte**: Segment „Manuell | Optimiert“ oben im Bereich. Manuell wie bisher. Optimiert: Auswahl Ziel („Rohstoffe sparen“ / „Strom sparen“), Kontrollkästchen „Alternativrezepte verwenden“, Liste der genutzten Rezepte je Item (Text, mehrere pro Item möglich) mit Textknopf „Ausschließen“; darunter ausgeschlossene Rezepte mit „Wieder erlauben“.
@@ -179,3 +179,7 @@ Ziel `"max"` („Vorhandene Rohstoffe ausnutzen“): `available: { rawId: rate }
 
 ### README
 `README.md` (Deutsch, kurz Englisch): Was es ist, Start (`start.bat` / `python -m http.server 8765`), Funktionen, Spieldaten aktualisieren, Tests, Hinweis „Inoffizielles Fan-Tool, nicht mit Coffee Stain Studios verbunden; Spieldaten aus den Community-Docs des Spiels“. Ein Screenshot unter `docs/screenshot.png`.
+
+## Spielstand
+
+Reiter „Spielstand“: erreichtes Tier (0–9 oder „alle“) und freigeschaltete Alternativrezepte („alle“ oder Liste). `recipes[].tier` kommt aus den Docs: kleinstes `mTechTier` der Schematics, die das Rezept freischalten (Festplatten nur, wenn es keine anderen gibt). `js/progress.js` (`applyProgress`) entfernt gesperrte Rezepte aus den Spieldaten, bevor Solver, Optimierer und Rezeptauswahl sie sehen; ein gesperrtes Standardrezept wird durch ein freies ersetzt (Standard vor Alternative), sonst ist das Item ohne Rezept. Alternativen: mit Liste zählt nur die Liste, ohne Liste das Tier. Beim Laden eines Plans bleibt der aktuelle Spielstand erhalten; im Link wird er mitgegeben. Kein MAM-Fortschritt im Detail (MAM-Rezepte zählen ab Tier 3).

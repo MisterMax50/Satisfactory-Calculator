@@ -405,6 +405,7 @@ body {
 }
 
 .check {
+  flex-shrink: 0;
   width: 16px;
   height: 16px;
   margin: 0;
@@ -992,4 +993,26 @@ body {
 
 .flow.is-far .flow-labels {
   display: none;
+}
+
+/* Reiter „Spielstand“ */
+.progress-view {
+  max-width: 720px;
+}
+
+.progress-label {
+  display: block;
+}
+
+.progress-tier {
+  max-width: 320px;
+}
+
+.check-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 6px 16px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
 }

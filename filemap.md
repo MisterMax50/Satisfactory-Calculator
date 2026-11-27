@@ -16,6 +16,7 @@
 - `js/result.js` — buildResult, effectiveRecipe (Somersloops), Strom-/Maschinen-Hilfen; gemeinsam für Solver und Optimierer
 - `js/extraction.js` — Förderung: Miner/Extraktoren, Reinheit, Takt, Quellenkompressoren
 - `js/flowLayout.js` — Fluss-Graph: Knoten, anteilige Kanten, Spalten-Layout (rein)
+- `js/progress.js` — Spielstand: filtert gesperrte Rezepte (Tier, Alternativen) aus den Spieldaten (rein)
 - `js/state.js` — Zustand, URL-Hash, localStorage-Pläne
 - `js/i18n.js` — UI-Texte de/en, Zahlenformat
 - `js/resourceLimits.js` — max. Weltförderung je Rohstoff/min (Richtwerte, von Hand gepflegt), für den Optimierer
@@ -30,6 +31,7 @@
 - `js/ui/production.js` — Reiter „Produktionsliste“ (Tabelle, schmal gestapelt), Somersloop-Auswahl, „Zuliefern“
 - `js/ui/tree.js` — Reiter „Baum“ (verschachtelte details)
 - `js/ui/rawview.js` — Reiter „Rohstoffe“: Förder-Tabelle (Förderanlage, Reinheit, Takt, Kompressoren), Zugeliefert, Überschuss
+- `js/ui/progress.js` — Reiter „Spielstand“: Tier-Auswahl, freigeschaltete Alternativrezepte
 - `js/ui/flow.js` — Reiter „Fluss“: SVG-Graph mit Verschieben, Zoom, Einpassen
 - `tests/index.html` — Browser-Testrunner (Testliste)
 - `tests/runner.js` — Mini-Testrunner (`test`, `assertEqual`, `assertClose`, `assertThrows`)
@@ -40,3 +42,4 @@
 - `tests/extraction.test.js` — Tests für die Förderung
 - `tests/flow.test.js` — Tests für das Fluss-Layout
 - `tests/optimizer.test.js` — Optimierer-Tests (Fixture + echte Daten, Laufzeit)
+- `tests/progress.test.js` — Tests für den Spielstand-Filter
