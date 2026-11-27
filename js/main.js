@@ -28,12 +28,12 @@ function compute(state) {
   const optimized = state.mode === "optimized";
   const key = JSON.stringify(
     optimized
-      ? [state.mode, targets, state.objective, state.allowAlternates, state.excluded, mods]
+      ? [state.mode, targets, state.objective, state.allowAlternates, state.excluded, mods, state.available]
       : [state.mode, targets, state.recipes, mods],
   );
   if (key === lastKey) return lastResult;
   const result = optimized
-    ? optimize({ targets, objective: state.objective, allowAlternates: state.allowAlternates, excluded: state.excluded, mods, data })
+    ? optimize({ targets, objective: state.objective, allowAlternates: state.allowAlternates, excluded: state.excluded, mods, data, available: state.available })
     : solve({ targets, recipeChoice: state.recipes, data, mods });
   lastKey = key;
   lastResult = result;

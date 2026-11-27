@@ -20,7 +20,12 @@ let activeTab = "list";
 // Zuletzt angesagter Fehler (Art + Items); nur ein neuer Fehler wird erneut angesagt.
 let lastError = null;
 
-const ERROR_KEYS = { cycle: "error.cycle", infeasible: "error.infeasible" };
+const ERROR_KEYS = {
+  cycle: "error.cycle",
+  infeasible: "error.infeasible",
+  insufficient: "error.insufficient",
+  unbounded: "error.unbounded",
+};
 
 function kpi(label, value, note) {
   return h(

@@ -322,6 +322,25 @@ test("optimize: Item ohne Rezept wird wie bei solve() mit missingRecipe geliefer
   assertEqual(direct.raw, [{ item: LEAVES, rate: 3, missingRecipe: true }]);
 });
 
+test("optimize max: vorhandenes Erz begrenzt, Ziele als Verhältnis (2 Platten : 1 Stange)", () => {
+  const res = opt([[PLATE, 2], [ROD, 1]], { objective: "max", allowAlternates: false, available: { [ORE]: 60 } });
+  // 2k Platten brauchen 3k Barren, k Stangen k Barren → 4k = 60 → k = 15
+  assertClose(res.scale, 15, 1e-9, "scale");
+  assertEqual(res.raw, [{ item: ORE, rate: 60 }]);
+  assertEqual(res.tree.map((n) => [n.item, n.rate]), [[PLATE, 30], [ROD, 15]]);
+});
+
+test("optimize max: Alternativrezept holt mehr heraus, Wasser ohne Eintrag unbegrenzt", () => {
+  const res = opt([[PLATE, 1]], { objective: "max", available: { [ORE]: 70 } });
+  assertClose(res.scale, ((70 / 7) * 13 * 2) / 3, 1e-6, "Reiner Eisenbarren: 130 Barren → 86,67 Platten");
+  assertEqual(recipesOf(res), [R_PURE, R_PLATE].sort());
+});
+
+test("optimize max: ohne Rohstoffe insufficient, nur Importe unbounded", () => {
+  assertEqual(opt([[PLATE, 1]], { objective: "max" }).error, "insufficient");
+  assertEqual(opt([[PLATE, 1]], { objective: "max", mods: { imports: [INGOT] } }).error, "unbounded");
+});
+
 test("optimize: leere/ungültige Ziele → leeres Ergebnis", () => {
   const res = opt([]);
   assertEqual(res.rows, []);

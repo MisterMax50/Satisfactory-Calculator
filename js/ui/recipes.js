@@ -3,9 +3,9 @@
 // Items mit nur einem Rezept zeigen den Rezeptnamen gedämpft.
 // Optimiert: Ziel, Alternativrezepte ja/nein, genutzte Rezepte mit „Ausschließen“, ausgeschlossene mit „Wieder erlauben“.
 import { h, clear, setPendingFocus } from "./dom.js";
-import { t, getLang } from "../i18n.js";
+import { t, getLang, formatNumber } from "../i18n.js";
 import { update } from "../state.js";
-import { itemLabel, recipeName, isUnpackage } from "./common.js";
+import { itemLabel, recipeName, isUnpackage, unitFor } from "./common.js";
 
 let byItem = null;
 
@@ -179,6 +179,7 @@ function optimizedControls(state, result, data) {
     },
     h("option", { value: "resources", selected: state.objective === "resources" }, t("objective.resources")),
     h("option", { value: "power", selected: state.objective === "power" }, t("objective.power")),
+    h("option", { value: "max", selected: state.objective === "max" }, t("objective.max")),
   );
   const alternates = h("input", {
     type: "checkbox",
@@ -192,6 +193,7 @@ function optimizedControls(state, result, data) {
     h("div", { class: "recipe-item" }, h("label", { class: "recipe-label", for: "objective-select" }, t("objective.label")), objective),
     h("label", { class: "check-row", for: "allow-alternates" }, alternates, t("recipes.allowAlternates")),
   ];
+  if (state.objective === "max") parts.push(...availableInputs(state, result, data));
 
   const used = usedByItem(result);
   if (used.size) {
@@ -222,6 +224,50 @@ function optimizedControls(state, result, data) {
         state.excluded.map((rid) => recipeLine(data, rid, "excluded", t("recipes.allow"), `allow-${rid}`, () => allow(rid))),
       ),
     );
+  }
+  return parts;
+}
+
+/** Eingabe der vorhandenen Rohstoffe (/min) für das Ziel "max". */
+function availableInputs(state, result, data) {
+  const ids = Object.keys(data.items)
+    .filter((id) => data.items[id].raw)
+    .sort((a, b) => itemLabel(data, a).localeCompare(itemLabel(data, b), getLang()));
+  const list = h("ul", { class: "target-list" });
+  for (const id of ids) {
+    const name = itemLabel(data, id);
+    const cur = state.available[id];
+    const input = h("input", {
+      type: "number",
+      min: "0",
+      step: "any",
+      inputmode: "decimal",
+      class: "rate-input num",
+      "aria-label": t("available.for", { name }),
+      "data-fkey": `avail-${id}`,
+      value: cur === undefined ? "" : String(cur),
+      onchange: (e) => {
+        const v = e.target.valueAsNumber;
+        update((st) => {
+          const available = { ...st.available };
+          if (Number.isFinite(v) && v > 0) available[id] = v;
+          else delete available[id];
+          return { available };
+        });
+      },
+    });
+    list.append(
+      h(
+        "li",
+        { class: "target-row" },
+        h("span", { class: "target-name", title: name }, name),
+        h("span", { class: "rate-field" }, input, h("span", { class: "rate-unit" }, unitFor(data.items[id]))),
+      ),
+    );
+  }
+  const parts = [h("h3", { class: "sub-title" }, t("available.title")), h("p", { class: "muted small" }, t("available.hint")), list];
+  if (!result.error && typeof result.scale === "number") {
+    parts.push(h("p", { class: "small" }, t("available.scale", { pct: `${formatNumber(result.scale * 100, 1)} %` })));
   }
   return parts;
 }

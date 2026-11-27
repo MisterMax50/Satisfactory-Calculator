@@ -49,6 +49,7 @@ const sample = {
   sloops: {},
   imports: [],
   extraction: {},
+  available: {},
 };
 const full = {
   v: 2,
@@ -65,6 +66,7 @@ const full = {
     Desc_OreIron_C: { extractor: "miner2", purity: "pure", maxClock: 250 },
     Desc_NitrogenGas_C: { extractor: "well", purity: "impure", maxClock: 1, pressurizers: 3 },
   },
+  available: { Desc_OreIron_C: 480, Desc_Coal_C: 120.5 },
 };
 
 test("encode/decode Roundtrip mit Umlauten und Emoji", () => {
@@ -190,6 +192,13 @@ test("kaputte Pläne-Einträge werden ignoriert", () => {
   assertEqual(mk("", storage).s.listPlans().map((p) => p.name), ["ok"]);
   storage.m.set("sfcalc.plans", "kaputt");
   assertEqual(mk("", storage).s.listPlans(), []);
+});
+
+test("v2: Ziel max und ungültige vorhandene Rohstoffe", () => {
+  const max = { ...full, objective: "max" };
+  assertEqual(decodeState(encodeState(max)), max);
+  assertEqual(decodeState(encodeState({ ...full, available: { Desc_OreIron_C: -1 } })), null);
+  assertEqual(decodeState(encodeState({ ...full, available: { Desc_OreIron_C: "5" } })), null);
 });
 
 test("v2: Roundtrip mit allen Feldern", () => {

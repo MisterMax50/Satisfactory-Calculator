@@ -293,15 +293,17 @@ function withExtras(result, objectiveValue, usedRecipes) {
  * Wählt Rezepte per linearem Programm (SPEC „Version 2 › Optimierung“).
  * @param {{
  *   targets: {item: string, rate: number}[],
- *   objective?: "resources" | "power",
+ *   objective?: "resources" | "power" | "max", // max: Ziele als Verhältnis, so viel wie `available` erlaubt
  *   allowAlternates?: boolean,
  *   excluded?: string[],                      // ausgeschlossene Rezept-IDs
  *   mods?: { sloops?: Object<string, number>, imports?: string[] },
  *   data: object,
  *   limits?: Object<string, number>,          // Weltlimit je Rohstoff (Standard: js/resourceLimits.js)
+ *   available?: Object<string, number>,       // nur "max": vorhandene Rohstoffe/min (fehlend = 0, Wasser unbegrenzt)
  * }} args
  * @returns {object} Result aus buildResult() plus `objectiveValue` und `usedRecipes: { itemId: [recipeId] }`,
  *   oder `{ error: "infeasible", items: [itemId] }` (Ziel-Items, die sich nicht herstellen lassen).
+ *   Bei "max" zusätzlich `scale` (erreichter Faktor auf die Ziele) bzw. Fehler "insufficient" / "unbounded".
  *   Items, für die data.recipes gar kein Rezept hat, werden wie Rohstoffe geliefert (Gewicht 1) und stehen
  *   in `raw` mit `missingRecipe: true`; infeasible heißt also: vorhandene Rezepte sind alle gesperrt.
  */
@@ -313,10 +315,11 @@ export function optimize({
   mods = {},
   data,
   limits = resourceLimits,
+  available = {},
 } = {}) {
   const items = data && data.items && typeof data.items === "object" ? data.items : {};
   const recipes = data && data.recipes && typeof data.recipes === "object" ? data.recipes : {};
-  const mode = objective === "power" ? "power" : "resources";
+  const mode = objective === "power" || objective === "max" ? objective : "resources";
   const imports = importSet(mods);
   const banned = new Set(Array.isArray(excluded) ? excluded.filter((x) => typeof x === "string") : []);
 
@@ -384,7 +387,16 @@ export function optimize({
     .sort(compareIds);
   const supplyIds = rowIds.filter(isSupply);
   const supplyCol = new Map(supplyIds.map((id, k) => [id, nRec + k]));
-  const nCols = nRec + supplyIds.length;
+  // "max": Spalte k skaliert alle Ziele (Ziele = Verhältnis), Rohstoffe sind durch `available` gedeckelt.
+  const kCol = mode === "max" ? nRec + supplyIds.length : -1;
+  const nCols = nRec + supplyIds.length + (kCol >= 0 ? 1 : 0);
+  const avail = available && typeof available === "object" ? available : {};
+  // Nicht eingetragene Rohstoffe = 0; Rohstoffe ohne Weltgrenze (Wasser) bleiben ohne Eintrag unbegrenzt.
+  const capOf = (id) => {
+    if (!isRaw(id) || imports.has(id)) return Infinity;
+    if (hasOwn(avail, id) && isPositiveNumber(avail[id])) return avail[id];
+    return limits[id] === Infinity ? Infinity : 0;
+  };
   const rowsFor = (dem) =>
     rowIds.map((id) => {
       const cols = [];
@@ -397,8 +409,15 @@ export function optimize({
         cols.push(supplyCol.get(id));
         vals.push(1);
       }
+      if (kCol >= 0 && dem.has(id)) {
+        cols.push(kCol);
+        vals.push(-dem.get(id));
+        return { cols, vals, rhs: 0 };
+      }
       return { cols, vals, rhs: dem.get(id) ?? 0 };
     });
+  const capRows = () =>
+    kCol < 0 ? [] : supplyIds.filter((id) => capOf(id) < Infinity).map((id) => ({ cols: [supplyCol.get(id)], vals: [-1], rhs: -capOf(id) }));
 
   // 4. Kosten: Maschinen = x_r × Dauer / 60; Strom linear (ohne Untertaktungs-Exponent).
   const weight = (id) => supplyWeight(id, imports, missing, limits);
@@ -415,14 +434,23 @@ export function optimize({
     // Auch bei "Strom sparen" sollen Items ohne Rezept nur genutzt werden, wenn es nicht anders geht.
     if (missing.has(id) && !imports.has(id)) powerCost[nRec + k] = MISSING_RECIPE_POWER_PENALTY;
   });
-  const primary = mode === "power" ? powerCost : rawCost;
-  const secondary = mode === "power" ? rawCost : machineCost;
+  const primary = mode === "power" ? powerCost : mode === "max" ? new Float64Array(nCols) : rawCost;
+  const secondary = mode === "power" ? rawCost : mode === "max" ? rawCost : machineCost;
   const combined = new Float64Array(nCols);
   for (let j = 0; j < nCols; j++) combined[j] = primary[j] + SECONDARY_WEIGHT * secondary[j];
+  if (kCol >= 0) combined[kCol] = -1;
 
   // Zweite Stufe (Nebenziel allein auf dem Optimum) nur als numerischer Gleichstandsbrecher: bei "power"
   // liegt 1e-6 × gewichtete Rohstoffe sonst unter der Toleranz.
-  const lp = solveLP(nCols, rowsFor(demand), [combined, secondary]);
+  const lp = solveLP(nCols, [...rowsFor(demand), ...capRows()], [combined, secondary]);
+
+  let scale = 1;
+  if (kCol >= 0) {
+    if (lp.status === "unbounded") return { error: "unbounded", items: [...demand.keys()] };
+    scale = lp.status === "optimal" ? lp.x[kCol] : 0;
+    if (!(scale > EPS)) return { error: "insufficient", items: [...demand.keys()] };
+    for (const [id, rate] of demand) demand.set(id, rate * scale);
+  }
 
   if (lp.status === "infeasible") {
     // Mit unbeschränkter Lieferung ist die Summe zulässiger Einzelziele zulässig → Ziele einzeln prüfen.
@@ -496,6 +524,8 @@ export function optimize({
   }
   const objectiveValue = mode === "power" ? power + SECONDARY_WEIGHT * rawSum : rawSum + SECONDARY_WEIGHT * machines;
 
-  const result = buildResult({ rates, targets: goals, data, mods, rowItems, itemRecipes });
+  const scaledGoals = goals.map((g) => ({ ...g, rate: g.rate * scale }));
+  const result = buildResult({ rates, targets: scaledGoals, data, mods, rowItems, itemRecipes });
+  if (kCol >= 0) result.scale = scale;
   return withExtras(result, objectiveValue, usedRecipes);
 }

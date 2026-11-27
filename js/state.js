@@ -23,6 +23,7 @@ export function defaultState() {
     sloops: {},
     imports: [],
     extraction: {},
+    available: {},
   };
 }
 
@@ -89,7 +90,7 @@ function migrate(s) {
     out.mode = s.mode;
   }
   if (s.objective !== undefined) {
-    if (s.objective !== "resources" && s.objective !== "power") return null;
+    if (s.objective !== "resources" && s.objective !== "power" && s.objective !== "max") return null;
     out.objective = s.objective;
   }
   if (s.allowAlternates !== undefined) {
@@ -117,6 +118,14 @@ function migrate(s) {
     out.extraction = {};
     for (const k of Object.keys(s.extraction)) out.extraction[k] = { ...s.extraction[k] };
   }
+  if (s.available !== undefined) {
+    if (!isObj(s.available)) return null;
+    for (const k of Object.keys(s.available)) {
+      const n = s.available[k];
+      if (typeof n !== "number" || !Number.isFinite(n) || n < 0) return null;
+    }
+    out.available = { ...s.available };
+  }
   return out;
 }
 
@@ -140,6 +149,7 @@ export function encodeState(state) {
   if (full.sloops && Object.keys(full.sloops).length) out.sloops = full.sloops;
   if (full.imports && full.imports.length) out.imports = full.imports;
   if (full.extraction && Object.keys(full.extraction).length) out.extraction = full.extraction;
+  if (full.available && Object.keys(full.available).length) out.available = full.available;
   return toBase64Url(JSON.stringify(out));
 }
 

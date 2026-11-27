@@ -152,6 +152,8 @@ Kontrollraum einer Fabrik. Eine einzige Akzentfarbe, Zahlen in schmaler Beschild
 
 ### Optimierung (`js/optimizer.js`, rein)
 `optimize({ targets, objective, allowAlternates, excluded, mods, data }) → Result | { error: "infeasible", items }`.
+
+Ziel `"max"` („Vorhandene Rohstoffe ausnutzen“): `available: { rawId: rate }` deckelt die Rohstoffe (nicht eingetragen = 0, Wasser ohne Eintrag unbegrenzt, Importe frei). Die Ziel-Raten sind ein Verhältnis; maximiert wird der Faktor k (Ergebnis `scale`), Nebenziel gewichtete Rohstoffe. Fehler `insufficient` (k = 0) und `unbounded` (nichts begrenzt).
 - Lineares Programm, eigener Simplex (zwei Phasen oder Big-M, Bland-Regel gegen Kreiseln), keine Bibliothek. Nur Rezepte, die rückwärts von den Zielen erreichbar sind; ausgeschlossene und (wenn `allowAlternates` falsch) alternative Rezepte entfallen.
 - Variablen: Rezeptraten ≥ 0, Rohstoff-/Import-Lieferung ≥ 0. Je Item: Nettoproduktion + Lieferung ≥ Zielbedarf (Rest = Überschuss).
 - Ziel `"resources"`: minimiere Σ Lieferung / Weltlimit (Wasser Gewicht 1e-6, Importe 0) + 1e-6 × Maschinen. Ziel `"power"`: minimiere Strom der Produktion + 1e-6 × gewichtete Rohstoffe.
@@ -165,7 +167,7 @@ Kontrollraum einer Fabrik. Eine einzige Akzentfarbe, Zahlen in schmaler Beschild
 - Darstellung SVG: verschieben per Ziehen, Zoom per Mausrad (zum Cursor) und Knöpfe „+“, „−“, „Einpassen“; Tastatur +/−/Pfeile, wenn der Graph fokussiert ist.
 
 ### Zustand v2
-`{ v: 2, targets, recipes, lang, mode: "manual" | "optimized", objective: "resources" | "power", allowAlternates: true, excluded: [recipeId], sloops: { recipeId: n }, imports: [itemId], extraction: { itemId: { extractor, purity, maxClock, pressurizers? } } }`. v1-Hashes und -Pläne werden beim Laden zu v2 migriert (fehlende Felder mit Standardwerten).
+`{ v: 2, targets, recipes, lang, mode: "manual" | "optimized", objective: "resources" | "power" | "max", allowAlternates: true, excluded: [recipeId], sloops: { recipeId: n }, imports: [itemId], extraction: { itemId: { extractor, purity, maxClock, pressurizers? } }, available: { itemId: rate } }`. v1-Hashes und -Pläne werden beim Laden zu v2 migriert (fehlende Felder mit Standardwerten).
 
 ### Oberfläche v2
 - **Rezepte**: Segment „Manuell | Optimiert“ oben im Bereich. Manuell wie bisher. Optimiert: Auswahl Ziel („Rohstoffe sparen“ / „Strom sparen“), Kontrollkästchen „Alternativrezepte verwenden“, Liste der genutzten Rezepte je Item (Text, mehrere pro Item möglich) mit Textknopf „Ausschließen“; darunter ausgeschlossene Rezepte mit „Wieder erlauben“.
