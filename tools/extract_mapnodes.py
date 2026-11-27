@@ -1,6 +1,7 @@
 # extract_mapnodes.py — erzeugt data/mapnodes.js (Rohstoffknoten der Weltkarte) aus WorldResourceNodes.json.
 # Quelle: https://github.com/rockfactory/satisfactory-logistics (src/recipes/WorldResourceNodes.json),
-# MIT License, Copyright (c) 2024 Leonardo Ascione. Aufruf: python tools/extract_mapnodes.py --src <json>
+# MIT License, Copyright (c) 2024 Leonardo Ascione; die Werte stammen ursprünglich aus
+# Hirashi3630/satisfactory_node_heatmap (MIT). Aufruf: python tools/extract_mapnodes.py --src <json>
 import argparse
 import json
 import pathlib
@@ -8,7 +9,7 @@ import pathlib
 # nodeType der Quelle → Art auf der Karte; Kerne und Lagerstätten haben keinen eigenen Abbau.
 KINDS = {"node": "node", "frackingSatellite": "well", "geyser": "geyser"}
 PURITIES = ("impure", "normal", "pure")
-SOURCE = "rockfactory/satisfactory-logistics (MIT, (c) 2024 Leonardo Ascione)"
+SOURCE = "Hirashi3630/satisfactory_node_heatmap (MIT), aufbereitet von rockfactory/satisfactory-logistics (MIT)"
 
 
 def convert(raw):

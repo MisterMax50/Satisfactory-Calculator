@@ -10,7 +10,9 @@
 - `css/app.css` — Design-Tokens und Layout
 - `data/gamedata.js` — GENERIERT aus Spieldaten, nicht editieren
 - `data/mapnodes.js` — GENERIERT: Rohstoffknoten der Weltkarte (Position, Reinheit), nicht editieren
+- `data/maptiles/4/<x>/<y>.webp` — Kartenbild als 16 × 16 Kacheln (© Coffee Stain Studios), von `tools/fetch_maptiles.py` geladen
 - `tools/serve.py` — lokaler Server ohne Browser-Cache (von `start.bat` genutzt)
+- `tools/fetch_maptiles.py` — lädt die Kartenbild-Kacheln (`--zoom`, Standard 4) nach `data/maptiles/`
 - `tools/extract_mapnodes.py` — erzeugt `data/mapnodes.js` aus WorldResourceNodes.json von rockfactory/satisfactory-logistics (MIT) (`--src`)
 - `tools/extract_gamedata.py` — erzeugt `data/gamedata.js` aus en-US.json/de.json der Spiel-Docs (`--docs`, `--out`)
 - `js/main.js` — Einstieg, verdrahtet Zustand → Solver/Optimierer (je Modus) → Förderung → UI
@@ -36,7 +38,7 @@
 - `js/ui/rawview.js` — Reiter „Rohstoffe“: Förder-Tabelle (Förderanlage, Reinheit, Takt, Kompressoren), Zugeliefert, Überschuss
 - `js/ui/progress.js` — Reiter „Spielstand“: Tier-Auswahl, freigeschaltete Alternativrezepte
 - `js/ui/flow.js` — Reiter „Fluss“: SVG-Graph mit Verschieben, Zoom, Einpassen, Knoten ziehen, Details zum Knoten
-- `js/ui/map.js` — Reiter „Karte“: schematische Weltkarte mit Rohstoffknoten, Filter, Zoom, Details mit Förderraten
+- `js/ui/map.js` — Reiter „Karte“: Weltkarte (Kartenbild-Kacheln) mit Rohstoffknoten, Filter, Zoom, Details mit Förderraten
 - `tests/index.html` — Browser-Testrunner (Testliste)
 - `tests/runner.js` — Mini-Testrunner (`test`, `assertEqual`, `assertClose`, `assertThrows`)
 - `tests/example.test.js` — Beispieltest

@@ -1153,6 +1153,7 @@ body {
 
 .map-grid {
   stroke: var(--color-line);
+  stroke-opacity: 0.35;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }

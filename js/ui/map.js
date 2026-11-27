@@ -1,4 +1,4 @@
-// map.js — Reiter „Karte“: schematische Weltkarte (keine Spielgrafik) mit allen Rohstoffknoten aus data/mapnodes.js,
+// map.js — Reiter „Karte“: Weltkarte (Kartenbild aus data/maptiles) mit allen Rohstoffknoten aus data/mapnodes.js,
 // Filter nach Rohstoff und Reinheit, Zoom/Verschieben, Details mit Förderraten beim Anklicken.
 import mapData from "../../data/mapnodes.js";
 import { h, clear } from "./dom.js";
@@ -23,6 +23,33 @@ const RESOURCES = [...new Set(NODES.map((n) => n.res))];
 let filter = null;
 let view = null;
 let picked = null;
+
+// Kartenbild: Kacheln aus data/maptiles (tools/fetch_maptiles.py), deckungsgleich mit bounds.
+// Einmal gebaut und bei jedem Neu-Rendern wiederverwendet, damit die Bilder nicht neu laden.
+const TILE_ZOOM = 4;
+let tileLayer = null;
+function tiles() {
+  if (tileLayer) return tileLayer;
+  const b = mapData.bounds;
+  const n = 2 ** TILE_ZOOM;
+  const size = b.width / n;
+  const imgs = [];
+  for (let x = 0; x < n; x++)
+    for (let y = 0; y < n; y++)
+      imgs.push(
+        s("image", {
+          href: new URL(`../../data/maptiles/${TILE_ZOOM}/${x}/${y}.webp`, import.meta.url).href,
+          x: b.x + x * size,
+          y: b.y + y * size,
+          // Ein Hauch Überlappung gegen Haarlinien zwischen den Kacheln.
+          width: size + 0.5,
+          height: size + 0.5,
+          preserveAspectRatio: "none",
+        }),
+      );
+  tileLayer = s("g", { class: "map-tiles", "aria-hidden": "true" }, imgs);
+  return tileLayer;
+}
 
 function s(tag, attrs = {}, ...children) {
   const el = document.createElementNS(SVG_NS, tag);
@@ -94,6 +121,7 @@ export function mapView(result, data) {
     "g",
     {},
     s("rect", { class: "map-world", x: b.x, y: b.y, width: b.width, height: b.height }),
+    tiles(),
     grid,
     s("g", {}, dots),
   );
@@ -288,6 +316,6 @@ export function mapView(result, data) {
     count,
     root,
     panel,
-    h("p", { class: "muted small" }, t("map.note"), " ", h("a", { href: "https://github.com/rockfactory/satisfactory-logistics", rel: "noopener" }, mapData.source)),
+    h("p", { class: "muted small" }, t("map.note"), " ", h("a", { href: "https://github.com/Hirashi3630/satisfactory_node_heatmap", rel: "noopener" }, mapData.source)),
   );
 }

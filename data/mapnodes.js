@@ -1,8 +1,8 @@
 // GENERIERT von tools/extract_mapnodes.py – nicht editieren
-// Quelle: rockfactory/satisfactory-logistics (MIT, (c) 2024 Leonardo Ascione)
+// Quelle: Hirashi3630/satisfactory_node_heatmap (MIT), aufbereitet von rockfactory/satisfactory-logistics (MIT)
 // Zeilen: [Rohstoff-ID, Reinheit, x (m), y (m), Art node|well|geyser]; Spielkoordinaten, +y = Süden.
 export default {
-  source: "rockfactory/satisfactory-logistics (MIT, (c) 2024 Leonardo Ascione)",
+  source: "Hirashi3630/satisfactory_node_heatmap (MIT), aufbereitet von rockfactory/satisfactory-logistics (MIT)",
   bounds: { x: -3247, y: -3750, width: 7500, height: 7500 },
   nodes: [
     ["Desc_Coal_C", "impure", -2810, -1427, "node"],
