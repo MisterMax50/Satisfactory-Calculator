@@ -1,11 +1,12 @@
 // tree.js — Baumansicht: verschachtelte <details open> je Knoten aus result.tree.
+// Item mit mehreren Erzeugern: Knoten ohne Rezept (recipe null), Kinder je Rezept mit Anteil.
 import { h } from "./dom.js";
 import { t } from "../i18n.js";
 import { nameNode, qtyNode, recipeName, itemLabel } from "./common.js";
 
 const SEP = " – ";
 
-function nodeView(node, data) {
+function nodeView(node, data, imported) {
   const item = data.items[node.item];
   const recipe = node.recipe ? data.recipes[node.recipe] : null;
   const parts = [nameNode(data, node.item), SEP, qtyNode(data, node.item, node.rate)];
@@ -22,6 +23,15 @@ function nodeView(node, data) {
     );
   }
   if (!item || item.raw) return h("div", { class: "tree-leaf muted" }, parts);
+  if (imported.has(node.item)) return h("div", { class: "tree-leaf muted" }, parts, SEP, t("import.title"));
+  if (!recipe && node.children.length) {
+    return h(
+      "details",
+      { class: "tree-node", open: true },
+      h("summary", {}, parts),
+      h("div", { class: "tree-children" }, node.children.map((c) => nodeView(c, data, imported))),
+    );
+  }
   if (!recipe) {
     return h("div", { class: "tree-leaf muted" }, parts, SEP, t("recipes.missing", { name: itemLabel(data, node.item) }));
   }
@@ -31,10 +41,11 @@ function nodeView(node, data) {
     "details",
     { class: "tree-node", open: true },
     h("summary", {}, label),
-    h("div", { class: "tree-children" }, node.children.map((c) => nodeView(c, data))),
+    h("div", { class: "tree-children" }, node.children.map((c) => nodeView(c, data, imported))),
   );
 }
 
 export function treeView(result, data) {
-  return h("div", { class: "tree" }, result.tree.map((n) => nodeView(n, data)));
+  const imported = new Set(result.raw.filter((e) => e.imported).map((e) => e.item));
+  return h("div", { class: "tree" }, result.tree.map((n) => nodeView(n, data, imported)));
 }

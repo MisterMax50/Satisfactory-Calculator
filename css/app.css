@@ -390,6 +390,55 @@ body {
   font-weight: 500;
 }
 
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.check {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+/* Genutzte/ausgeschlossene Rezepte (optimierter Modus) */
+.recipe-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recipe-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.recipe-line .recipe-name {
+  min-width: 0;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.recipe-line .text-btn {
+  flex: none;
+}
+
 /* Teilen und Pläne */
 .side-foot {
   gap: 24px;
@@ -513,6 +562,10 @@ body {
   display: block;
 }
 
+.kpi-note {
+  margin: 2px 0 0;
+}
+
 .kpi-flow .num {
   white-space: nowrap;
 }
@@ -605,6 +658,49 @@ body {
   margin-top: 4px;
 }
 
+/* Somersloops unter dem Maschinenschild */
+.sloop-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sloop-select {
+  width: auto;
+  min-height: 28px;
+  padding: 2px 6px;
+  font-size: 13px;
+}
+
+.sloop-note {
+  margin-top: 4px;
+  color: var(--color-accent);
+}
+
+.import-btn {
+  display: block;
+  margin: 2px 0 0 -4px;
+}
+
+/* Rohstoffe: Förder-Tabelle */
+.raw-table .select {
+  width: auto;
+  max-width: 100%;
+}
+
+.press-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.raw-table tfoot th,
+.raw-table tfoot td {
+  border-bottom: 0;
+}
+
 .flow-row {
   display: flex;
   justify-content: space-between;
@@ -626,7 +722,8 @@ body {
 
 /* Produktionsliste schmal: gestapelte Zeilen, jede Zelle mit Label davor */
 @container (max-width: 699px) {
-  .prod-table thead {
+  .prod-table thead,
+  .raw-table thead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -636,17 +733,29 @@ body {
 
   .prod-table,
   .prod-table tbody,
-  .prod-table tr {
+  .prod-table tr,
+  .raw-table,
+  .raw-table tbody,
+  .raw-table tfoot,
+  .raw-table tr,
+  .raw-table tfoot th {
     display: block;
   }
 
-  .prod-table tr {
+  .prod-table tr,
+  .raw-table tr {
     padding: 8px 0;
     border-bottom: 1px solid var(--color-line);
   }
 
+  .raw-table tfoot th {
+    padding: 4px 0;
+  }
+
   .prod-table td,
-  .prod-table td.right {
+  .prod-table td.right,
+  .raw-table td,
+  .raw-table td.right {
     display: grid;
     grid-template-columns: 96px minmax(0, 1fr);
     column-gap: 12px;
@@ -656,18 +765,28 @@ body {
     white-space: normal;
   }
 
-  .prod-table td::before {
+  .raw-table td:empty,
+  .raw-table td.right:empty {
+    display: none;
+  }
+
+  .prod-table td::before,
+  .raw-table td::before {
     content: attr(data-label);
     grid-row: 1 / span 9;
     color: var(--color-text-muted);
     font-size: 13px;
   }
 
-  .prod-table td > * {
+  .prod-table td > *,
+  .raw-table td > * {
     grid-column: 2;
   }
 
-  .prod-table .plate {
+  .prod-table .plate,
+  .prod-table .sloop-field,
+  .raw-table .select,
+  .raw-table .rate-field {
     justify-self: start;
   }
 }

@@ -1,4 +1,5 @@
-// results.js — Inhaltsbereich: leerer Zustand, Zyklus-Fehler, Kennzahlenleiste, Reiter mit den drei Ansichten.
+// results.js — Inhaltsbereich: leerer Zustand, Fehler (Zyklus/unlösbar), Kennzahlenleiste, Reiter mit den Ansichten.
+// Ansichten bekommen (result, data, ctx) mit ctx = { state, extraction }.
 import { h, clear } from "./dom.js";
 import { t, formatNumber } from "../i18n.js";
 import { itemLabel, flowNode } from "./common.js";
@@ -16,13 +17,24 @@ const TABS = [
 
 // Gewählter Reiter lebt nur in der Sitzung (wird nicht gespeichert).
 let activeTab = "list";
-let hadError = false;
+// Zuletzt angesagter Fehler (Art + Items); nur ein neuer Fehler wird erneut angesagt.
+let lastError = null;
 
-function kpi(label, value) {
-  return h("div", { class: "kpi" }, h("dt", { class: "kpi-label" }, label), h("dd", { class: "kpi-value" }, value));
+const ERROR_KEYS = { cycle: "error.cycle", infeasible: "error.infeasible" };
+
+function kpi(label, value, note) {
+  return h(
+    "div",
+    { class: "kpi" },
+    h("dt", { class: "kpi-label" }, label),
+    h("dd", { class: "kpi-value" }, value),
+    note ? h("dd", { class: "kpi-note muted small" }, note) : null,
+  );
 }
 
-function kpiBar(result, data) {
+const mw = (v) => `${formatNumber(v, 1)} ${t("unit.power")}`;
+
+function kpiBar(result, extraction, data) {
   const raw = [...result.raw].sort((a, b) => b.rate - a.rate);
   const top = raw.slice(0, 2);
   const rest = raw.length - top.length;
@@ -36,14 +48,19 @@ function kpiBar(result, data) {
   return h(
     "dl",
     { class: "kpis", "aria-label": t("kpi.title") },
-    kpi(t("kpi.power"), `${formatNumber(result.power, 1)} ${t("unit.power")}`),
+    kpi(
+      t("kpi.power"),
+      mw(result.power + extraction.power),
+      extraction.power > 0 ? t("kpi.extraction", { power: mw(extraction.power) }) : null,
+    ),
     kpi(t("kpi.machines"), formatNumber(result.machineCount)),
     kpi(t("kpi.raw"), rawValue),
     kpi(t("kpi.surplus"), surplus),
+    result.sloopsTotal > 0 ? kpi(t("kpi.sloops"), formatNumber(result.sloopsTotal)) : null,
   );
 }
 
-function tabs(result, data) {
+function tabs(result, data, ctx) {
   const tabEls = [];
   const panels = [];
   const select = (id, focus) => {
@@ -85,7 +102,7 @@ function tabs(result, data) {
       ),
     );
     panels.push(
-      h("div", { role: "tabpanel", class: "panel", id: `panel-${tab.id}`, "aria-labelledby": `tab-${tab.id}`, tabindex: "0" }, tab.view(result, data)),
+      h("div", { role: "tabpanel", class: "panel", id: `panel-${tab.id}`, "aria-labelledby": `tab-${tab.id}`, tabindex: "0" }, tab.view(result, data, ctx)),
     );
   }
   const list = h("div", { role: "tablist", class: "tablist", "aria-label": t("tabs.label") }, tabEls);
@@ -93,20 +110,22 @@ function tabs(result, data) {
   return [list, ...panels];
 }
 
-export function renderResults(root, state, result, data) {
+export function renderResults(root, state, result, extraction, data) {
   clear(root);
   if (!state.targets.length) {
-    hadError = false;
+    lastError = null;
     root.append(h("div", { class: "empty" }, h("p", {}, t("empty.state"))));
     return;
   }
   if (result.error) {
     const items = (result.items || []).map((id) => itemLabel(data, id)).join(", ");
+    const key = `${result.error}:${(result.items || []).join(",")}`;
     // Nur beim ersten Auftreten ansagen, nicht bei jedem Neu-Rendern.
-    root.append(h("div", { class: "banner", role: hadError ? null : "alert" }, t("error.cycle", { items })));
-    hadError = true;
+    root.append(h("div", { class: "banner", role: lastError === key ? null : "alert" }, t(ERROR_KEYS[result.error] || "error.cycle", { items })));
+    lastError = key;
     return;
   }
-  hadError = false;
-  root.append(kpiBar(result, data), ...tabs(result, data));
+  lastError = null;
+  const ctx = { state, extraction };
+  root.append(kpiBar(result, extraction, data), ...tabs(result, data, ctx));
 }

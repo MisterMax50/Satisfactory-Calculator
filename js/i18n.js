@@ -97,6 +97,11 @@ const dict = {
     "flow.target": "Ziel: {name}",
     "flow.surplus": "Überschuss",
     "error.infeasible": "Mit den erlaubten Rezepten lässt sich {items} nicht herstellen. Erlaube Alternativrezepte oder weniger Ausschlüsse.",
+    "raw.extractorFor": "Förderanlage für {name}",
+    "raw.purityFor": "Reinheit für {name}",
+    "raw.maxClockFor": "Max. Takt für {name} in Prozent",
+    "raw.pressurizersFor": "Quellenkompressoren für {name}",
+    "import.removeFor": "{name} selbst herstellen",
   },
   en: {
     "app.title": "Satisfactory calculator",
@@ -194,6 +199,11 @@ const dict = {
     "flow.target": "Target: {name}",
     "flow.surplus": "Surplus",
     "error.infeasible": "The allowed recipes cannot produce {items}. Allow alternate recipes or fewer exclusions.",
+    "raw.extractorFor": "Extractor for {name}",
+    "raw.purityFor": "Purity for {name}",
+    "raw.maxClockFor": "Max. clock for {name} in percent",
+    "raw.pressurizersFor": "Pressurizers for {name}",
+    "import.removeFor": "Produce {name} myself",
   },
 };
 

@@ -43,7 +43,7 @@ Prüfung: Miner Mk1/2/3 = 60/120/240 pro min, 5/15/45 MW; Wasserextraktor 120 m�
 ## 11. Fluss-Graph — Careful — nach 8 — [x]
 `js/flowLayout.js` (rein, getestet) und `js/ui/flow.js` (SVG, Verschieben/Zoom/Einpassen, Hover) laut SPEC; vierten Reiter „Fluss“ in `js/ui/results.js` eintragen.
 
-## 12. Oberfläche v2 — Careful — nach 7, 8, 9, 10, 11 — [ ]
+## 12. Oberfläche v2 — Careful — nach 7, 8, 9, 10, 11 — [x]
 Rezepte-Modus, Somersloop-Auswahl, „Zuliefern“, Kennzahlen, Rohstoffe-Tabelle mit Förderung, Fehler-Banner `infeasible`; echter Test der Zyklus-Meldung im Browser.
 
 ## 13. README — Light — nach 12 — [ ]

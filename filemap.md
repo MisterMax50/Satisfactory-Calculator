@@ -8,7 +8,7 @@
 - `css/app.css` — Design-Tokens und Layout
 - `data/gamedata.js` — GENERIERT aus Spieldaten, nicht editieren
 - `tools/extract_gamedata.py` — erzeugt `data/gamedata.js` aus en-US.json/de.json der Spiel-Docs (`--docs`, `--out`)
-- `js/main.js` — Einstieg, verdrahtet Zustand → Solver → UI
+- `js/main.js` — Einstieg, verdrahtet Zustand → Solver/Optimierer (je Modus) → Förderung → UI
 - `js/solver.js` — Produktionsberechnung manuell (Gleichungssystem), rein
 - `js/optimizer.js` — Optimierung (eigener Simplex), Ziel Rohstoffe oder Strom
 - `js/result.js` — buildResult, effectiveRecipe (Somersloops), Strom-/Maschinen-Hilfen; gemeinsam für Solver und Optimierer
@@ -22,12 +22,12 @@
 - `js/ui/header.js` — App-Titel und Sprachumschalter DE | EN
 - `js/ui/search.js` — Item-Suche als Combobox (max. 12 Treffer, Tastatur)
 - `js/ui/targets.js` — Bereich „Ziele“: Zielzeilen mit Mengenfeld, Entfernen, Suche
-- `js/ui/recipes.js` — Bereich „Rezepte“: Rezeptauswahl je Item im Ergebnis
+- `js/ui/recipes.js` — Bereich „Rezepte“: Segment Manuell | Optimiert; Rezeptauswahl je Item bzw. Ziel, Alternativen, genutzte/ausgeschlossene Rezepte
 - `js/ui/plans.js` — „Link kopieren“ und gespeicherte Pläne (speichern/laden/löschen)
-- `js/ui/results.js` — Inhaltsbereich: leerer Zustand, Zyklus-Fehler, Kennzahlen, Reiter
-- `js/ui/production.js` — Reiter „Produktionsliste“ (Tabelle, schmal gestapelt)
+- `js/ui/results.js` — Inhaltsbereich: leerer Zustand, Fehler (Zyklus/unlösbar), Kennzahlen inkl. Förderung/Somersloops, Reiter
+- `js/ui/production.js` — Reiter „Produktionsliste“ (Tabelle, schmal gestapelt), Somersloop-Auswahl, „Zuliefern“
 - `js/ui/tree.js` — Reiter „Baum“ (verschachtelte details)
-- `js/ui/rawview.js` — Reiter „Rohstoffe“ mit Überschuss-Tabelle
+- `js/ui/rawview.js` — Reiter „Rohstoffe“: Förder-Tabelle (Förderanlage, Reinheit, Takt, Kompressoren), Zugeliefert, Überschuss
 - `js/ui/flow.js` — Reiter „Fluss“: SVG-Graph mit Verschieben, Zoom, Einpassen
 - `tests/index.html` — Browser-Testrunner (Testliste)
 - `tests/runner.js` — Mini-Testrunner (`test`, `assertEqual`, `assertClose`, `assertThrows`)
