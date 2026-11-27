@@ -1,7 +1,7 @@
 // flow.test.js — Tests für js/flowLayout.js (buildFlow): Kantenaufteilung, Knotenarten, Spalten, Zyklen, Determinismus.
 // Eigene kleine Result-Fixtures (Format von js/result.js), keine echten Spieldaten.
 import { test, assertEqual, assertClose } from "./runner.js";
-import { buildFlow, NODE_W, NODE_H, COL_GAP, ROW_GAP } from "../js/flowLayout.js";
+import { buildFlow, moveNodes, NODE_W, NODE_H, COL_GAP, ROW_GAP } from "../js/flowLayout.js";
 
 const items = (...ids) => ({ items: Object.fromEntries(ids.map((id) => [id, { id, form: id === "Water" ? "fluid" : "solid" }])) });
 const row = (recipe, item, inputs, outputs) => ({
@@ -183,4 +183,18 @@ test("flow: leeres Ergebnis und Fehler", () => {
   assertEqual(buildFlow({ rows: [], raw: [], surplus: [] }, [], items()), empty);
   assertEqual(buildFlow(null, null, null), empty);
   assertEqual(buildFlow({ error: "cycle", items: ["A"] }, [{ item: "A", rate: 1 }], items("A")), empty);
+});
+
+test("flow: moveNodes – Kanten folgen dem verschobenen Knoten, Box wächst mit", () => {
+  const result = { rows: [row("R", "Plate", [["Ore", 10]], [["Plate", 5]])], raw: [{ item: "Ore", rate: 10 }], surplus: [] };
+  const f = buildFlow(result, [{ item: "Plate", rate: 5 }], items("Ore", "Plate"));
+  const m = node(f, "m:R");
+  const into = f.edges.find((e) => e.to === "m:R");
+  const [x1, y1, x2, y2] = into.ends;
+  const changed = moveNodes(f, new Map([["m:R", { x: m.x + 50, y: m.y + 500 }]]));
+  assertEqual(changed.includes(into.id), true, "Eingangskante geändert");
+  assertEqual(into.ends.join(), [x1, y1, x2 + 50, y2 + 500].join(), "nur das Zielende wandert");
+  assertClose(into.labelY, (y1 + y2 + 500) / 2);
+  assertEqual(f.bounds.y + f.bounds.height >= m.y + m.h, true, "Box enthält Knoten");
+  assertEqual(moveNodes(f, new Map([["m:R", { x: m.x, y: m.y }]])).length, 0, "ohne Änderung nichts zu tun");
 });

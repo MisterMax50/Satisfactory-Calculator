@@ -1,9 +1,9 @@
 // flow.js — Reiter „Fluss“: SVG-Darstellung des Fluss-Graphen (js/flowLayout.js) mit Verschieben, Zoom, Einpassen, Hervorhebung.
 import { h, clear } from "./dom.js";
 import { t, localName, formatNumber, formatRate } from "../i18n.js";
-import { itemLabel, isFluid } from "./common.js";
+import { itemLabel, isFluid, flowNode, recipeName } from "./common.js";
 import { ceilMachines } from "../result.js";
-import { buildFlow } from "../flowLayout.js";
+import { buildFlow, moveNodes } from "../flowLayout.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const MIN_ZOOM = 0.2;
@@ -23,8 +23,9 @@ const MARK_GAP = 4;
 const LABEL_H = 18;
 const LABEL_PAD = 6;
 
-// Zoom/Position bleiben über Neu-Rendern erhalten, solange die Knotenmenge gleich bleibt.
-let memory = { key: null, view: null, fitted: false, height: null, minK: MIN_ZOOM };
+// Zoom/Position, verschobene Knoten und Auswahl bleiben über Neu-Rendern erhalten, solange die Knotenmenge gleich bleibt.
+const freshMemory = (key) => ({ key, view: null, fitted: false, height: null, minK: MIN_ZOOM, moved: new Map(), selected: null });
+let memory = freshMemory(null);
 
 function s(tag, attrs, ...children) {
   const el = document.createElementNS(SVG_NS, tag);
@@ -169,10 +170,13 @@ export function renderFlow(container, result, state, data) {
     view = { ...memory.view };
     needsFit = false;
   } else {
-    memory = { key, view: null, fitted: false, height: null, minK: MIN_ZOOM };
+    memory = freshMemory(key);
     view = { k: 1, tx: FIT_PAD, ty: FIT_PAD };
     needsFit = true;
   }
+
+  moveNodes(flow, memory.moved);
+  const byId = new Map(flow.nodes.map((n) => [n.id, n]));
 
   // Kanten, Beschriftungen, Knoten.
   const labels = placeLabels(flow, data);
@@ -208,9 +212,11 @@ export function renderFlow(container, result, state, data) {
   const zoomIn = h("button", { type: "button", class: "btn flow-btn", "aria-label": t("flow.zoomIn"), title: t("flow.zoomIn") }, "+");
   const zoomOut = h("button", { type: "button", class: "btn flow-btn", "aria-label": t("flow.zoomOut"), title: t("flow.zoomOut") }, "−");
   const fitBtn = h("button", { type: "button", class: "btn flow-btn", "aria-label": t("flow.fit") }, t("flow.fit"));
-  const root = h("div", { class: "flow" }, viewport, h("div", { class: "flow-controls" }, zoomIn, zoomOut, fitBtn));
+  const resetBtn = h("button", { type: "button", class: "btn flow-btn", hidden: !memory.moved.size }, t("flow.reset"));
+  const root = h("div", { class: "flow" }, viewport, h("div", { class: "flow-controls" }, zoomIn, zoomOut, fitBtn, resetBtn));
   if (!needsFit && memory.height) root.style.height = `${memory.height}px`;
-  container.append(root);
+  const details = h("section", { class: "flow-details", "aria-live": "polite" });
+  container.append(h("p", { class: "muted small flow-hint" }, t("flow.hint")), root, details);
 
   // Ansicht.
   const apply = () => {
@@ -267,6 +273,10 @@ export function renderFlow(container, result, state, data) {
   zoomIn.addEventListener("click", () => zoomCenter(ZOOM_STEP));
   zoomOut.addEventListener("click", () => zoomCenter(1 / ZOOM_STEP));
   fitBtn.addEventListener("click", () => fitView());
+  resetBtn.addEventListener("click", () => {
+    memory.moved.clear();
+    renderFlow(container, result, state, data);
+  });
 
   // Beim ersten Anzeigen einpassen (Reiter kann beim Aufbau noch verborgen sein).
   if (typeof ResizeObserver === "function") {
@@ -388,6 +398,107 @@ export function renderFlow(container, result, state, data) {
       highlight();
     });
   }
+
+  // Details zum gewählten Knoten unter dem Graphen.
+  const select = (id) => {
+    if (memory.selected) nodeEls.get(memory.selected)?.classList.remove("is-selected");
+    memory.selected = id && byId.has(id) ? id : null;
+    clear(details);
+    if (!memory.selected) return;
+    nodeEls.get(memory.selected).classList.add("is-selected");
+    details.append(...detailsContent(byId.get(memory.selected), flow, byId, data, () => select(null)));
+  };
+  select(memory.selected);
+
+  // Knoten ziehen: verschiebt ihn (Kanten folgen); Klick ohne Bewegung oder Enter/Leertaste zeigt Details.
+  for (const [id, g] of nodeEls) {
+    let nd = null;
+    g.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      e.stopPropagation(); // nicht die Ansicht verschieben
+      const n = byId.get(id);
+      nd = { id: e.pointerId, x: e.clientX, y: e.clientY, nx: n.x, ny: n.y, moving: false };
+      g.setPointerCapture(e.pointerId); // sofort, sonst verliert der Knoten schnelle Bewegungen
+    });
+    g.addEventListener("pointermove", (e) => {
+      if (!nd || e.pointerId !== nd.id) return;
+      const dx = e.clientX - nd.x;
+      const dy = e.clientY - nd.y;
+      if (!nd.moving) {
+        if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+        nd.moving = true;
+        root.classList.add("is-dragging");
+      }
+      const pos = { x: Math.round(nd.nx + dx / view.k), y: Math.round(nd.ny + dy / view.k) };
+      memory.moved.set(id, pos);
+      g.setAttribute("transform", `translate(${pos.x} ${pos.y})`);
+      for (const eid of moveNodes(flow, new Map([[id, pos]]))) {
+        const el = edgeEls.get(eid);
+        const edge = flow.edges.find((x) => x.id === eid);
+        el.path.setAttribute("d", edge.path);
+        const label = labelEl(edge, labels.get(eid));
+        label.classList.toggle("is-hl", el.label.classList.contains("is-hl"));
+        el.label.replaceWith(label);
+        el.label = label;
+      }
+      resetBtn.hidden = false;
+    });
+    const end = (e) => {
+      if (!nd || e.pointerId !== nd.id) return;
+      if (g.hasPointerCapture(e.pointerId)) g.releasePointerCapture(e.pointerId);
+      if (!nd.moving && e.type === "pointerup") select(memory.selected === id ? null : id);
+      nd = null;
+      root.classList.remove("is-dragging");
+    };
+    g.addEventListener("pointerup", end);
+    g.addEventListener("pointercancel", end);
+    g.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      e.stopPropagation();
+      select(memory.selected === id ? null : id);
+    });
+  }
+  viewport.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && memory.selected) select(null);
+  });
+}
+
+/** Inhalt der Detailansicht: Kopf, bei Maschinen Rezept/Anzahl/Strom, dann Ein- und Ausgänge mit Partnerknoten. */
+function detailsContent(n, flow, byId, data, close) {
+  const [line1, line2] = nodeLines(n, data);
+  const head = h(
+    "div",
+    { class: "flow-details-head" },
+    h("h3", { class: "flow-details-title" }, `${line1} · ${line2}`),
+    h("button", { type: "button", class: "btn flow-btn", onclick: close }, t("flow.close")),
+  );
+  const facts = [];
+  if (n.kind === "machine") {
+    const recipe = data.recipes && data.recipes[n.row.recipe];
+    facts.push([t("flow.recipe"), recipe ? recipeName(recipe) : n.row.recipe]);
+    facts.push([t("flow.machines"), formatNumber(n.row.machines, 2)]);
+    facts.push([t("flow.power"), `${formatNumber(n.row.power, 1)} ${t("unit.power")}`]);
+  }
+  const list = (title, edges, other) =>
+    edges.length
+      ? [
+          h("h4", { class: "flow-details-sub" }, title),
+          h(
+            "ul",
+            { class: "flow-details-list" },
+            edges.map((e) =>
+              h("li", {}, flowNode(data, e.item, e.rate), h("span", { class: "muted" }, ` · ${nodeLines(byId.get(other(e)), data)[0]}`)),
+            ),
+          ),
+        ]
+      : [];
+  return [
+    head,
+    facts.length ? h("dl", { class: "flow-details-facts" }, facts.flatMap(([k, v]) => [h("dt", {}, k), h("dd", {}, v)])) : null,
+    ...list(t("flow.inputs"), flow.edges.filter((e) => e.to === n.id), (e) => e.from),
+    ...list(t("flow.outputs"), flow.edges.filter((e) => e.from === n.id), (e) => e.to),
+  ];
 }
 
 /** Reiter-Ansicht (result, data): Ziele aus den Wurzeln von result.tree. */

@@ -21,7 +21,8 @@ Ist ein Port belegt (z. B. 8080), den Port im Befehl ändern oder einen freien w
 - Somersloops je Rezept
 - Förderung mit Minern und Extraktoren, Reinheit und Takt
 - Zuliefern: Items als Import statt Eigenproduktion
-- Fluss-Graph der Produktion
+- Fluss-Graph der Produktion (Knoten verschiebbar, Details per Klick)
+- Weltkarte mit allen Rohstoffknoten, Filter nach Rohstoff und Reinheit (Knotendaten: [rockfactory/satisfactory-logistics](https://github.com/rockfactory/satisfactory-logistics), MIT)
 - Oberfläche und Itemnamen Deutsch und Englisch
 - Pläne im Browser speichern und als Link teilen
 
@@ -34,6 +35,12 @@ python tools/extract_gamedata.py [--docs <Pfad>]
 ```
 
 Das Skript liest `CommunityResources\Docs` der Spielinstallation (Pfad optional mit `--docs`).
+
+Karte: `data/mapnodes.js` wird aus `src/recipes/WorldResourceNodes.json` von rockfactory/satisfactory-logistics erzeugt:
+
+```
+python tools/extract_mapnodes.py --src <Pfad zu WorldResourceNodes.json>
+```
 
 ## Tests
 

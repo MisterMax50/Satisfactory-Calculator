@@ -9,14 +9,16 @@
 - `start.bat` — lokaler Server + Browser öffnen
 - `css/app.css` — Design-Tokens und Layout
 - `data/gamedata.js` — GENERIERT aus Spieldaten, nicht editieren
+- `data/mapnodes.js` — GENERIERT: Rohstoffknoten der Weltkarte (Position, Reinheit), nicht editieren
 - `tools/serve.py` — lokaler Server ohne Browser-Cache (von `start.bat` genutzt)
+- `tools/extract_mapnodes.py` — erzeugt `data/mapnodes.js` aus WorldResourceNodes.json von rockfactory/satisfactory-logistics (MIT) (`--src`)
 - `tools/extract_gamedata.py` — erzeugt `data/gamedata.js` aus en-US.json/de.json der Spiel-Docs (`--docs`, `--out`)
 - `js/main.js` — Einstieg, verdrahtet Zustand → Solver/Optimierer (je Modus) → Förderung → UI
 - `js/solver.js` — Produktionsberechnung manuell (Gleichungssystem), rein
 - `js/optimizer.js` — Optimierung (eigener Simplex), Ziel Rohstoffe oder Strom
 - `js/result.js` — buildResult, effectiveRecipe (Somersloops), Strom-/Maschinen-Hilfen; gemeinsam für Solver und Optimierer
 - `js/extraction.js` — Förderung: Miner/Extraktoren, Reinheit, Takt, Quellenkompressoren
-- `js/flowLayout.js` — Fluss-Graph: Knoten, anteilige Kanten, Spalten-Layout (rein)
+- `js/flowLayout.js` — Fluss-Graph: Knoten, anteilige Kanten, Spalten-Layout, Knoten verschieben (rein)
 - `js/progress.js` — Spielstand: filtert gesperrte Rezepte (Tier, Alternativen) aus den Spieldaten (rein)
 - `js/state.js` — Zustand, URL-Hash, localStorage-Pläne
 - `js/i18n.js` — UI-Texte de/en, Zahlenformat
@@ -33,7 +35,8 @@
 - `js/ui/tree.js` — Reiter „Baum“ (verschachtelte details)
 - `js/ui/rawview.js` — Reiter „Rohstoffe“: Förder-Tabelle (Förderanlage, Reinheit, Takt, Kompressoren), Zugeliefert, Überschuss
 - `js/ui/progress.js` — Reiter „Spielstand“: Tier-Auswahl, freigeschaltete Alternativrezepte
-- `js/ui/flow.js` — Reiter „Fluss“: SVG-Graph mit Verschieben, Zoom, Einpassen
+- `js/ui/flow.js` — Reiter „Fluss“: SVG-Graph mit Verschieben, Zoom, Einpassen, Knoten ziehen, Details zum Knoten
+- `js/ui/map.js` — Reiter „Karte“: schematische Weltkarte mit Rohstoffknoten, Filter, Zoom, Details mit Förderraten
 - `tests/index.html` — Browser-Testrunner (Testliste)
 - `tests/runner.js` — Mini-Testrunner (`test`, `assertEqual`, `assertClose`, `assertThrows`)
 - `tests/example.test.js` — Beispieltest

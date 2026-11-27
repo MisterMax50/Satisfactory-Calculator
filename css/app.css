@@ -16,6 +16,21 @@
   --color-fluid: #5BB8E6;       /* Fluide: Rohrblau */
   --color-error: #F06A5E;       /* Fehler */
 
+  /* Rohstoffe auf der Karte */
+  --res-iron: #E07A5F;
+  --res-copper: #F2A65A;
+  --res-stone: #D9D2C3;
+  --res-coal: #7E8790;
+  --res-gold: #F4D35E;
+  --res-quartz: #E58FD6;
+  --res-sulfur: #C6E05A;
+  --res-bauxite: #B5838D;
+  --res-uranium: #5EE07A;
+  --res-sam: #A77BFF;
+  --res-oil: #7D8CC4;
+  --res-nitrogen: #9FE7E0;
+  --res-geyser: #FF5E7E;
+
   /* Schriften */
   --font-text: "Barlow", system-ui, Arial, sans-serif;
   --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
@@ -903,8 +918,63 @@ body {
   visibility: hidden;
 }
 
-.flow-node:focus-visible .flow-ring {
+.flow-node:focus-visible .flow-ring,
+.flow-node.is-selected .flow-ring {
   visibility: visible;
+}
+
+.flow-hint {
+  margin: 0 0 8px;
+}
+
+/* Details zum gewählten Knoten (Fluss und Karte) */
+.flow-details:not(:empty) {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+
+.flow-details-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.flow-details-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.flow-details-sub {
+  margin: 12px 0 4px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.flow-details-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px 16px;
+  margin: 8px 0 0;
+}
+
+.flow-details-facts dt {
+  color: var(--color-text-muted);
+}
+
+.flow-details-facts dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.flow-details-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .flow-line1 {
@@ -1021,3 +1091,99 @@ body {
   padding: 0;
   list-style: none;
 }
+
+/* Karte */
+.map-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.map-fieldset {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+}
+
+.map-fieldset legend {
+  padding: 0 4px;
+  color: var(--color-text-muted);
+}
+
+.map-actions {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.map-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.map-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.map-swatch,
+.map-size {
+  display: inline-block;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+}
+
+.map-swatch {
+  width: 10px;
+  height: 10px;
+}
+
+.map-size--impure { width: 7px; height: 7px; }
+.map-size--normal { width: 10px; height: 10px; }
+.map-size--pure { width: 14px; height: 14px; }
+
+.map-world {
+  fill: var(--color-bg);
+}
+
+.map-grid {
+  stroke: var(--color-line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-node {
+  stroke: var(--color-bg);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+
+.map-node--well {
+  stroke-dasharray: 2 1;
+}
+
+.map-node.is-selected {
+  stroke: var(--color-text);
+  stroke-width: 3;
+}
+
+[data-res="Desc_OreIron_C"] { fill: var(--res-iron); background: var(--res-iron); }
+[data-res="Desc_OreCopper_C"] { fill: var(--res-copper); background: var(--res-copper); }
+[data-res="Desc_Stone_C"] { fill: var(--res-stone); background: var(--res-stone); }
+[data-res="Desc_Coal_C"] { fill: var(--res-coal); background: var(--res-coal); }
+[data-res="Desc_OreGold_C"] { fill: var(--res-gold); background: var(--res-gold); }
+[data-res="Desc_RawQuartz_C"] { fill: var(--res-quartz); background: var(--res-quartz); }
+[data-res="Desc_Sulfur_C"] { fill: var(--res-sulfur); background: var(--res-sulfur); }
+[data-res="Desc_OreBauxite_C"] { fill: var(--res-bauxite); background: var(--res-bauxite); }
+[data-res="Desc_OreUranium_C"] { fill: var(--res-uranium); background: var(--res-uranium); }
+[data-res="Desc_SAM_C"] { fill: var(--res-sam); background: var(--res-sam); }
+[data-res="Desc_LiquidOil_C"] { fill: var(--res-oil); background: var(--res-oil); }
+[data-res="Desc_Water_C"] { fill: var(--color-fluid); background: var(--color-fluid); }
+[data-res="Desc_NitrogenGas_C"] { fill: var(--res-nitrogen); background: var(--res-nitrogen); }
+[data-res="Desc_GeothermalEnergy_C"] { fill: var(--res-geyser); background: var(--res-geyser); }

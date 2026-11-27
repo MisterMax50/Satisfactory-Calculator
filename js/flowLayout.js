@@ -245,7 +245,6 @@ export function buildFlow(result, targets, data) {
   let backIndex = 0;
   let minX = 0;
   let maxX = width;
-  const r = (v) => Math.round(v * 100) / 100;
   for (const e of edges) {
     const a = byId.get(e.from);
     const b = byId.get(e.to);
@@ -253,6 +252,7 @@ export function buildFlow(result, targets, data) {
     const y1 = portY.get(`${e.id}|out`);
     const x2 = b.x;
     const y2 = portY.get(`${e.id}|in`);
+    e.ends = [x1, y1, x2, y2];
     if (isBack(e)) {
       const yb = nodesH + BACK_GAP * (backIndex + 1);
       backIndex++;
@@ -267,8 +267,7 @@ export function buildFlow(result, targets, data) {
       e.labelX = r((x1 + x2) / 2);
       e.labelY = r(yb);
     } else {
-      const dx = Math.max(40, (x2 - x1) / 2);
-      e.path = `M ${r(x1)} ${r(y1)} C ${r(x1 + dx)} ${r(y1)} ${r(x2 - dx)} ${r(y2)} ${r(x2)} ${r(y2)}`;
+      e.path = edgeCurve(x1, y1, x2, y2);
       e.labelX = r((x1 + x2) / 2);
       e.labelY = r((y1 + y2) / 2);
     }
@@ -278,4 +277,51 @@ export function buildFlow(result, targets, data) {
   // bounds: alles Gezeichnete inkl. Rückkanten-Bögen (für „Einpassen“).
   const bounds = { x: r(minX), y: 0, width: r(maxX - minX), height };
   return { nodes, edges, width, height, bounds };
+}
+
+const r = (v) => Math.round(v * 100) / 100;
+
+/** Kante als Bézier von Ausgang (x1, y1) zu Eingang (x2, y2); läuft sie nach links (verschobene Knoten), holt sie weiter aus. */
+export function edgeCurve(x1, y1, x2, y2) {
+  const dx = x2 >= x1 ? Math.max(40, (x2 - x1) / 2) : Math.max(80, (x1 - x2) / 2);
+  return `M ${r(x1)} ${r(y1)} C ${r(x1 + dx)} ${r(y1)} ${r(x2 - dx)} ${r(y2)} ${r(x2)} ${r(y2)}`;
+}
+
+/**
+ * Verschiebt Knoten (moved: Map id → {x, y}) in flow: Kanten folgen mit ihren Ports, Beschriftung zur Mitte,
+ * Bounding-Box neu. Ändert flow und gibt die IDs der geänderten Kanten zurück.
+ */
+export function moveNodes(flow, moved) {
+  const delta = new Map();
+  for (const n of flow.nodes) {
+    const p = moved.get(n.id);
+    if (!p || (p.x === n.x && p.y === n.y)) continue;
+    delta.set(n.id, { dx: p.x - n.x, dy: p.y - n.y });
+    n.x = p.x;
+    n.y = p.y;
+  }
+  const changed = [];
+  if (!delta.size) return changed;
+  const zero = { dx: 0, dy: 0 };
+  for (const e of flow.edges) {
+    const a = delta.get(e.from);
+    const b = delta.get(e.to);
+    if (!a && !b) continue;
+    const [x1, y1, x2, y2] = e.ends;
+    const d1 = a || zero;
+    const d2 = b || zero;
+    e.ends = [x1 + d1.dx, y1 + d1.dy, x2 + d2.dx, y2 + d2.dy];
+    e.path = edgeCurve(...e.ends);
+    e.back = false;
+    e.labelX = r((e.ends[0] + e.ends[2]) / 2);
+    e.labelY = r((e.ends[1] + e.ends[3]) / 2);
+    changed.push(e.id);
+  }
+  // shortcut: Box nur aus Knoten und Kantenmitten (Bögen ragen etwas hinaus), reicht fürs Einpassen.
+  const xs = [...flow.nodes.flatMap((n) => [n.x, n.x + n.w]), ...flow.edges.map((e) => e.labelX)];
+  const ys = [...flow.nodes.flatMap((n) => [n.y, n.y + n.h]), ...flow.edges.map((e) => e.labelY)];
+  const minX = Math.min(...xs);
+  const minY = Math.min(...ys);
+  flow.bounds = { x: r(minX), y: r(minY), width: r(Math.max(...xs) - minX), height: r(Math.max(...ys) - minY) };
+  return changed;
 }

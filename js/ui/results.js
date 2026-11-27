@@ -8,12 +8,15 @@ import { treeView } from "./tree.js";
 import { rawView } from "./rawview.js";
 import { flowTab } from "./flow.js";
 import { progressView } from "./progress.js";
+import { mapView } from "./map.js";
 
 const TABS = [
   { id: "list", label: "tabs.list", view: productionTable },
   { id: "tree", label: "tabs.tree", view: treeView },
   { id: "raw", label: "tabs.raw", view: rawView },
   { id: "flow", label: "tabs.flow", view: flowTab },
+  // Karte zeigt ohne Plan alle Knoten; Namen und Förderanlagen aus den vollen Spieldaten.
+  { id: "map", label: "tabs.map", view: (result, data, ctx) => mapView(ctx.message ? null : result, ctx.allData), always: true },
   // Spielstand ist auch ohne Ergebnis bedienbar und arbeitet auf den vollen Spieldaten.
   { id: "progress", label: "tabs.progress", view: (result, data, ctx) => progressView(ctx.state, ctx.allData), always: true },
 ];
