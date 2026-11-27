@@ -9,7 +9,7 @@ Produktionsplaner für Satisfactory 1.0 im Browser, ohne Installation. Zielprodu
 Python 3 wird benötigt (nur für den lokalen Server).
 
 - Windows: `start.bat` ausführen, oder
-- `python -m http.server 8765` im Projektordner, dann http://localhost:8765 öffnen.
+- `python tools/serve.py 8765` im Projektordner, dann http://localhost:8765 öffnen.
 
 Ist ein Port belegt (z. B. 8080), den Port im Befehl ändern oder einen freien wählen.
 
@@ -47,6 +47,6 @@ Inoffizielles Fan-Tool, nicht mit Coffee Stain Studios verbunden. Die Spieldaten
 
 Unofficial production planner for Satisfactory 1.0 that runs in the browser, no installation. Enter target items and rates per minute to get intermediate products, machines with clock speeds, raw resources, power and surplus. Features: alternate recipes, optimization for resources or power, somersloops, extraction (miners, extractors, purity, clock), imports, flow graph, German/English UI, saved plans and shareable links.
 
-Start: run `start.bat` or `python -m http.server 8765` (Python 3 required) and open http://localhost:8765. Update game data with `python tools/extract_gamedata.py [--docs <path>]` (reads `CommunityResources\Docs` of the game install). Tests: http://localhost:8765/tests/.
+Start: run `start.bat` or `python tools/serve.py 8765` (Python 3 required) and open http://localhost:8765. Update game data with `python tools/extract_gamedata.py [--docs <path>]` (reads `CommunityResources\Docs` of the game install). Tests: http://localhost:8765/tests/.
 
 Fan project, not affiliated with Coffee Stain Studios. Game data comes from the game's community docs; world extraction limits in `js/resourceLimits.js` are approximate values from the Satisfactory wiki.

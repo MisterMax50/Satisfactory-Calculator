@@ -9,6 +9,7 @@
 - `start.bat` — lokaler Server + Browser öffnen
 - `css/app.css` — Design-Tokens und Layout
 - `data/gamedata.js` — GENERIERT aus Spieldaten, nicht editieren
+- `tools/serve.py` — lokaler Server ohne Browser-Cache (von `start.bat` genutzt)
 - `tools/extract_gamedata.py` — erzeugt `data/gamedata.js` aus en-US.json/de.json der Spiel-Docs (`--docs`, `--out`)
 - `js/main.js` — Einstieg, verdrahtet Zustand → Solver/Optimierer (je Modus) → Förderung → UI
 - `js/solver.js` — Produktionsberechnung manuell (Gleichungssystem), rein

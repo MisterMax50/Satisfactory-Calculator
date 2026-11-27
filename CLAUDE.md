@@ -3,7 +3,7 @@
 Stack: statisches HTML/CSS/JS (native ES-Module, kein Build, keine npm-Pakete); Python 3 nur für `tools/` und den lokalen Server.
 
 ## Befehle
-- Starten: `start.bat` oder `python -m http.server 8765` im Projektordner → http://localhost:8765
+- Starten: `start.bat` oder `python tools/serve.py 8765` im Projektordner → http://localhost:8765
 - Tests: Server starten, http://localhost:8765/tests/ öffnen (Browser-Runner)
 - Spieldaten neu erzeugen: `python tools/extract_gamedata.py` (optional `--docs <Pfad>`)
 
