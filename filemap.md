@@ -5,7 +5,7 @@
 - `docs/screenshot.png` — Screenshot der Produktionsliste für die README
 - `docs/SPEC.md` — Spezifikation (Ziele, Datenmodell, Solver, Design)
 - `docs/PLAN.md` — Aufgaben, Status, Prüfungen
-- `index.html` — App-Shell
+- `index.html` — App-Shell (Rechner)
 - `start.bat` — lokaler Server + Browser öffnen
 - `css/app.css` — Design-Tokens und Layout
 - `data/gamedata.js` — GENERIERT aus Spieldaten, nicht editieren
@@ -40,7 +40,9 @@
 - `js/ui/rawview.js` — Reiter „Rohstoffe“: Förder-Tabelle (Förderanlage, Reinheit, Takt, Kompressoren), Zugeliefert, Überschuss
 - `js/ui/progress.js` — Reiter „Spielstand“: Tier-Auswahl, freigeschaltete Alternativrezepte
 - `js/ui/flow.js` — Reiter „Fluss“: SVG-Graph mit Verschieben, Zoom, Einpassen, Knoten ziehen, Details zum Knoten
-- `js/ui/map.js` — Reiter „Karte“: Weltkarte (Kartenbild-Kacheln) mit Rohstoffknoten, Filter, Zoom, Details mit Förderraten
+- `map.html` — Kartenseite (Vollbild), geöffnet über „Karte öffnen“ im Rechner
+- `js/map-main.js` — Einstieg der Kartenseite: liest `#lang=…&res=…` aus dem Link
+- `js/ui/map.js` — Kartenseite: Vollbild-Weltkarte (Kartenbild-Kacheln) mit Rohstoffknoten, Optionen und Details als eingeblendete Fenster, Zoom
 - `tests/index.html` — Browser-Testrunner (Testliste)
 - `tests/runner.js` — Mini-Testrunner (`test`, `assertEqual`, `assertClose`, `assertThrows`)
 - `tests/example.test.js` — Beispieltest

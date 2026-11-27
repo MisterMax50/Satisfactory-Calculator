@@ -8,15 +8,12 @@ import { treeView } from "./tree.js";
 import { rawView } from "./rawview.js";
 import { flowTab } from "./flow.js";
 import { progressView } from "./progress.js";
-import { mapView } from "./map.js";
 
 const TABS = [
   { id: "list", label: "tabs.list", view: productionTable },
   { id: "tree", label: "tabs.tree", view: treeView },
   { id: "raw", label: "tabs.raw", view: rawView },
   { id: "flow", label: "tabs.flow", view: flowTab },
-  // Karte zeigt ohne Plan alle Knoten; Namen und Förderanlagen aus den vollen Spieldaten.
-  { id: "map", label: "tabs.map", view: (result, data, ctx) => mapView(ctx.message ? null : result, ctx.allData), always: true },
   // Spielstand ist auch ohne Ergebnis bedienbar und arbeitet auf den vollen Spieldaten.
   { id: "progress", label: "tabs.progress", view: (result, data, ctx) => progressView(ctx.state, ctx.allData), always: true },
 ];
@@ -144,6 +141,13 @@ export function renderResults(root, state, result, extraction, data, allData = d
     );
     lastError = key;
   } else lastError = null;
+  // Karte als eigene Seite; der Link gibt Sprache und Rohstoffe des Plans mit.
+  const res = !ctx.message && Array.isArray(result.raw) ? result.raw.map((r) => r.item) : [];
+  const mapLink = h(
+    "a",
+    { class: "btn map-open", href: `map.html#lang=${state.lang}&res=${res.map(encodeURIComponent).join(",")}`, "data-fkey": "map-open" },
+    t("map.open"),
+  );
   // Ohne Ergebnis: Hinweis statt Kennzahlen, Ergebnis-Reiter bleiben leer.
-  root.append(ctx.message || kpiBar(result, extraction, data), ...tabs(result, data, ctx));
+  root.append(h("div", { class: "content-actions" }, mapLink), ctx.message || kpiBar(result, extraction, data), ...tabs(result, data, ctx));
 }

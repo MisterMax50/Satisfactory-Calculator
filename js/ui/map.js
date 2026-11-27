@@ -1,4 +1,4 @@
-// map.js — Reiter „Karte“: Weltkarte (Kartenbild aus data/maptiles) mit allen Rohstoffknoten aus data/mapnodes.js,
+// map.js — Kartenseite (map.html): Vollbild-Weltkarte (Kartenbild aus data/maptiles) mit allen Rohstoffknoten aus data/mapnodes.js,
 // Filter nach Rohstoff und Reinheit, Zoom/Verschieben, Details mit Förderraten beim Anklicken.
 import mapData from "../../data/mapnodes.js";
 import { h, clear } from "./dom.js";
@@ -63,9 +63,9 @@ const resName = (data, id) => (id === GEYSER ? t("map.geyser") : itemLabel(data,
 const kindName = (kind) => t(`map.kind.${kind}`);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-/** Standardfilter: Rohstoffe des aktuellen Plans, sonst alle; alle Reinheiten. */
-function defaultFilter(result) {
-  const used = new Set((result && Array.isArray(result.raw) ? result.raw : []).map((r) => r.item));
+/** Standardfilter: Rohstoffe des Plans (IDs aus dem Link), sonst alle; alle Reinheiten. */
+function defaultFilter(planIds) {
+  const used = new Set(planIds || []);
   const res = RESOURCES.filter((id) => used.has(id));
   return { res: new Set(res.length ? res : RESOURCES), pur: new Set(PURITIES), auto: true };
 }
@@ -99,9 +99,12 @@ function details(n, data, close) {
   ];
 }
 
-/** Reiter-Ansicht: Filter, Karte, Details. data: volle Spieldaten (Itemnamen, Förderanlagen). */
-export function mapView(result, data) {
-  if (!filter || filter.auto) filter = defaultFilter(result);
+/**
+ * Vollbild-Karte mit eingeblendeten Fenstern (Optionen oben links, Details unten links).
+ * planIds: Rohstoff-IDs des Plans (für „Nur Plan“ und den Start-Filter); data: volle Spieldaten.
+ */
+export function mapView(planIds, data) {
+  if (!filter || filter.auto) filter = defaultFilter(planIds);
   const b = mapData.bounds;
 
   // Karte: Rand, Gitter, Knoten (große zuerst, damit kleine obenauf und klickbar bleiben).
@@ -146,7 +149,7 @@ export function mapView(result, data) {
     ),
   );
   const count = h("p", { class: "muted small", "aria-live": "polite" });
-  const panel = h("section", { class: "flow-details", "aria-live": "polite" });
+  const panel = h("section", { class: "flow-details map-panel", "aria-live": "polite" });
 
   // Sichtbarkeit nach Filter, Zähler.
   const visible = (n) => filter.res.has(n.res) && filter.pur.has(n.pur);
@@ -202,7 +205,7 @@ export function mapView(result, data) {
         { class: "map-actions" },
         h("button", { type: "button", class: "btn flow-btn", onclick: () => setAll(RESOURCES) }, t("map.all")),
         h("button", { type: "button", class: "btn flow-btn", onclick: () => setAll([]) }, t("map.none")),
-        h("button", { type: "button", class: "btn flow-btn", onclick: () => setAll(defaultFilter(result).res) }, t("map.plan")),
+        h("button", { type: "button", class: "btn flow-btn", onclick: () => setAll(defaultFilter(planIds).res) }, t("map.plan")),
       ),
       h("div", { class: "map-checks" }, resList),
     ),
@@ -321,13 +324,17 @@ export function mapView(result, data) {
 
   applyFilter();
   pick(picked);
-  return h(
-    "div",
-    { class: "map-host" },
-    filters,
-    count,
-    root,
+  root.append(
+    h(
+      "details",
+      { class: "map-overlay", open: true },
+      h("summary", { class: "map-overlay-title" }, t("map.options")),
+      h("a", { class: "btn flow-btn map-back", href: "index.html" }, t("map.back")),
+      filters,
+      count,
+      h("p", { class: "muted small" }, t("map.note"), " ", h("a", { href: "https://github.com/Hirashi3630/satisfactory_node_heatmap", rel: "noopener" }, mapData.source)),
+    ),
     panel,
-    h("p", { class: "muted small" }, t("map.note"), " ", h("a", { href: "https://github.com/Hirashi3630/satisfactory_node_heatmap", rel: "noopener" }, mapData.source)),
   );
+  return root;
 }
