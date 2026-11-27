@@ -11,7 +11,7 @@
 - Optimierung, Fluss-Graph, Miner/Reinheit und Somersloops: in Version 2 umgesetzt, siehe Abschnitt „Version 2“ unten.
 - Keine Power-Shards/Übertaktung von Produktionsgebäuden (nur Untertaktung auf ganze Maschinen); Übertaktung nur für Förderanlagen.
 - Kein Import/Export von Spielständen, kein Server, kein Login.
-- Keine Spiel-Grafiken, Icons oder Logos (Urheberrecht). Items werden als Text dargestellt. Ausnahme auf Wunsch des Nutzers: das Kartenbild im Reiter „Karte“.
+- Keine Spiel-Grafiken, Icons oder Logos (Urheberrecht). Items werden als Text dargestellt. Ausnahmen auf Wunsch des Nutzers: das Kartenbild im Reiter „Karte“ und die Spiel-Icons der Rohstoffe (`data/icons/`, aus dem Satisfactory-Wiki via `tools/fetch_icons.py`) vor Rohstoffnamen und als Kartenmarker über dem farbigen Kreis.
 
 ## Stack
 - HTML5, CSS, JavaScript (ES2022, native ES-Module), kein Build, keine npm-Abhängigkeiten.

@@ -1131,16 +1131,10 @@ body {
   cursor: pointer;
 }
 
-.map-swatch,
 .map-size {
   display: inline-block;
   border-radius: 50%;
   background: var(--color-text-muted);
-}
-
-.map-swatch {
-  width: 10px;
-  height: 10px;
 }
 
 .map-size--impure { width: 7px; height: 7px; }
@@ -1163,6 +1157,18 @@ body {
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
   cursor: pointer;
+}
+
+.map-icon {
+  pointer-events: none;
+}
+
+.item-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  vertical-align: -5px;
+  object-fit: contain;
 }
 
 .map-node--well {

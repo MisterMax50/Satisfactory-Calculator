@@ -17,10 +17,18 @@ export function fluidMark(item) {
   return isFluid(item) ? h("span", { class: "fluid-mark", "aria-hidden": "true" }) : null;
 }
 
-/** Itemname, bei Fluiden mit Markierung. */
+/** URL des Spiel-Icons (data/icons, tools/fetch_icons.py); vorhanden für alle Rohstoffe und den Geysir. */
+export const iconUrl = (id) => new URL(`../../data/icons/${id}.png`, import.meta.url).href;
+
+/** Icon vor Rohstoffnamen (dekorativ, der Name folgt), sonst nichts. */
+export function iconNode(item) {
+  return item && item.raw ? h("img", { class: "item-icon", src: iconUrl(item.id), alt: "", width: 20, height: 20, loading: "lazy" }) : null;
+}
+
+/** Itemname, bei Rohstoffen mit Icon, bei Fluiden mit Markierung. */
 export function nameNode(data, id) {
   const item = data.items[id];
-  return h("span", { class: "item-name" }, fluidMark(item), itemLabel(data, id));
+  return h("span", { class: "item-name" }, iconNode(item), fluidMark(item), itemLabel(data, id));
 }
 
 /** Menge mit Einheit („120 /min“ bzw. „30 m³/min“), optional mit Fluid-Markierung. */

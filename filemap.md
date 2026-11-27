@@ -12,6 +12,8 @@
 - `data/mapnodes.js` — GENERIERT: Rohstoffknoten der Weltkarte (Position, Reinheit), nicht editieren
 - `data/maptiles/4/<x>/<y>.webp` — Kartenbild als 16 × 16 Kacheln (© Coffee Stain Studios), von `tools/fetch_maptiles.py` geladen
 - `tools/serve.py` — lokaler Server ohne Browser-Cache (von `start.bat` genutzt)
+- `data/icons/<Item-ID>.png` — Spiel-Icons der Rohstoffe und des Geysirs, 64 px (© Coffee Stain Studios), von `tools/fetch_icons.py` geladen
+- `tools/fetch_icons.py` — lädt die Rohstoff-Icons aus dem Satisfactory-Wiki nach `data/icons/`
 - `tools/fetch_maptiles.py` — lädt die Kartenbild-Kacheln (`--zoom`, Standard 4) nach `data/maptiles/`
 - `tools/extract_mapnodes.py` — erzeugt `data/mapnodes.js` aus WorldResourceNodes.json von rockfactory/satisfactory-logistics (MIT) (`--src`)
 - `tools/extract_gamedata.py` — erzeugt `data/gamedata.js` aus en-US.json/de.json der Spiel-Docs (`--docs`, `--out`)

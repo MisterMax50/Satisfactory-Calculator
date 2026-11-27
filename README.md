@@ -42,7 +42,7 @@ Karte: `data/mapnodes.js` wird aus `src/recipes/WorldResourceNodes.json` von roc
 python tools/extract_mapnodes.py --src <Pfad zu WorldResourceNodes.json>
 ```
 
-Kartenbild (`data/maptiles/4/`): `python tools/fetch_maptiles.py` lädt die Kacheln neu.
+Kartenbild (`data/maptiles/4/`): `python tools/fetch_maptiles.py` lädt die Kacheln neu; Rohstoff-Icons (`data/icons/`): `python tools/fetch_icons.py`.
 
 ## Tests
 
@@ -50,7 +50,7 @@ Server starten und http://localhost:8765/tests/ im Browser öffnen.
 
 ## Hinweis
 
-Inoffizielles Fan-Tool, nicht mit Coffee Stain Studios verbunden. Die Spieldaten stammen aus den Community-Docs des Spiels. Die Weltförderlimits in `js/resourceLimits.js` sind Richtwerte aus dem Satisfactory-Wiki. Das Kartenbild ist Eigentum von Coffee Stain Studios und wird wie in anderen Fan-Tools nur als Orientierung gezeigt.
+Inoffizielles Fan-Tool, nicht mit Coffee Stain Studios verbunden. Die Spieldaten stammen aus den Community-Docs des Spiels. Die Weltförderlimits in `js/resourceLimits.js` sind Richtwerte aus dem Satisfactory-Wiki. Kartenbild und Rohstoff-Icons (aus dem Satisfactory-Wiki) sind Eigentum von Coffee Stain Studios und wird wie in anderen Fan-Tools nur als Orientierung gezeigt.
 
 ## English
 
@@ -58,4 +58,4 @@ Unofficial production planner for Satisfactory 1.0 that runs in the browser, no 
 
 Start: run `start.bat` or `python tools/serve.py 8765` (Python 3 required) and open http://localhost:8765. Update game data with `python tools/extract_gamedata.py [--docs <path>]` (reads `CommunityResources\Docs` of the game install). Tests: http://localhost:8765/tests/.
 
-Fan project, not affiliated with Coffee Stain Studios. Game data comes from the game's community docs; world extraction limits in `js/resourceLimits.js` are approximate values from the Satisfactory wiki. The map image is property of Coffee Stain Studios, shown for reference only as in other fan tools.
+Fan project, not affiliated with Coffee Stain Studios. Game data comes from the game's community docs; world extraction limits in `js/resourceLimits.js` are approximate values from the Satisfactory wiki. The map image and resource icons (from the Satisfactory wiki) are property of Coffee Stain Studios, shown for reference only as in other fan tools.

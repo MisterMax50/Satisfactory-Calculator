@@ -12,7 +12,7 @@ Stack: statisches HTML/CSS/JS (native ES-Module, kein Build, keine npm-Pakete); 
 - `js/solver.js` bleibt rein (kein DOM, kein localStorage, keine globalen Daten-Importe).
 - Jeder sichtbare Text kommt aus `js/i18n.js` (de + en); Itemnamen aus `item.name[lang]`.
 - Fluide intern und in der Anzeige in m³ (Docs-Werte / 1000).
-- Keine Spiel-Grafiken, Logos oder Icons einbinden; einzige Ausnahme: das Kartenbild in `data/maptiles/` (bewusst vom Nutzer gewünscht).
+- Keine Spiel-Grafiken, Logos oder Icons einbinden; Ausnahmen (bewusst vom Nutzer gewünscht): Kartenbild in `data/maptiles/`, Rohstoff-Icons in `data/icons/`.
 - Farben/Schriften nur über die CSS-Variablen in `css/app.css`.
 - Neue/verschobene Dateien in `filemap.md` eintragen.
 

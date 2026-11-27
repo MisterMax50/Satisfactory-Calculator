@@ -3,13 +3,14 @@
 import mapData from "../../data/mapnodes.js";
 import { h, clear } from "./dom.js";
 import { t, formatNumber, formatRate, localName } from "../i18n.js";
-import { itemLabel } from "./common.js";
+import { itemLabel, iconUrl } from "./common.js";
 import { extractorsFor, PURITY_FACTORS } from "../extraction.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const GEYSER = "Desc_GeothermalEnergy_C";
 const PURITIES = ["impure", "normal", "pure"];
-const RADIUS = { impure: 3.5, normal: 5, pure: 7 }; // Bildschirm-px, unabhängig vom Zoom
+const RADIUS = { impure: 7, normal: 9, pure: 12 }; // Bildschirm-px, unabhängig vom Zoom
+const ICON = 1.5; // Icon-Kantenlänge = ICON × Radius
 const GRID = 500; // Gitterweite in m
 const MIN_ZOOM = 0.02;
 const MAX_ZOOM = 2;
@@ -117,13 +118,15 @@ export function mapView(result, data) {
       s("title", {}, `${resName(data, n.res)} · ${t(`purity.${n.pur}`)} · ${kindName(n.kind)}`),
     ),
   );
+  // Spiel-Icon über dem farbigen Kreis; Klicks gehen an den Kreis (data-i).
+  const icons = order.map((n) => s("image", { class: "map-icon", href: iconUrl(n.res) }));
   const scene = s(
     "g",
     {},
     s("rect", { class: "map-world", x: b.x, y: b.y, width: b.width, height: b.height }),
     tiles(),
     grid,
-    s("g", {}, dots),
+    s("g", {}, dots.flatMap((c, j) => [c, icons[j]])),
   );
   const svg = s("svg", { class: "flow-svg", width: "100%", height: "100%" }, scene);
   const viewport = h("div", { class: "flow-viewport", tabindex: "0", role: "group", "aria-label": t("map.label"), "data-fkey": "map-graph" });
@@ -152,6 +155,7 @@ export function mapView(result, data) {
     dots.forEach((c, j) => {
       const on = visible(order[j]);
       c.style.display = on ? "" : "none";
+      icons[j].style.display = c.style.display;
       if (on) shown++;
     });
     count.textContent = t("map.count", { shown: formatNumber(shown), total: formatNumber(NODES.length) });
@@ -169,7 +173,7 @@ export function mapView(result, data) {
       const box = h("input", { type: "checkbox", checked: filter.res.has(id), "data-fkey": `map-res-${id}`, onchange: (e) => toggle(filter.res, id, e.target.checked) });
       resBoxes.set(id, box);
       const n = NODES.filter((x) => x.res === id).length;
-      return h("label", { class: "map-check" }, box, h("span", { class: "map-swatch", "data-res": id }), `${resName(data, id)} (${formatNumber(n)})`);
+      return h("label", { class: "map-check" }, box, h("img", { class: "item-icon", src: iconUrl(id), alt: "", width: 20, height: 20 }), `${resName(data, id)} (${formatNumber(n)})`);
     });
   const setAll = (ids) => {
     filter.res = new Set(ids);
@@ -209,7 +213,15 @@ export function mapView(result, data) {
   let v = view ? { ...view } : null;
   const apply = () => {
     scene.setAttribute("transform", `translate(${v.tx} ${v.ty}) scale(${v.k})`);
-    dots.forEach((c, j) => c.setAttribute("r", RADIUS[order[j].pur] / v.k));
+    dots.forEach((c, j) => {
+      const r = RADIUS[order[j].pur] / v.k;
+      c.setAttribute("r", r);
+      const im = icons[j];
+      im.setAttribute("x", order[j].x - (ICON * r) / 2);
+      im.setAttribute("y", order[j].y - (ICON * r) / 2);
+      im.setAttribute("width", ICON * r);
+      im.setAttribute("height", ICON * r);
+    });
     view = { ...v };
   };
   const size = () => viewport.getBoundingClientRect();
