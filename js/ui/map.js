@@ -9,8 +9,9 @@ import { extractorsFor, PURITY_FACTORS } from "../extraction.js";
 const SVG_NS = "http://www.w3.org/2000/svg";
 const GEYSER = "Desc_GeothermalEnergy_C";
 const PURITIES = ["impure", "normal", "pure"];
-const RADIUS = { impure: 7, normal: 9, pure: 12 }; // Bildschirm-px, unabhängig vom Zoom
-const ICON = 1.5; // Icon-Kantenlänge = ICON × Radius
+// Bildschirm-px, unabhängig vom Zoom: Icon überall gleich groß, die Reinheit zeigt der farbige Ring darum.
+const RADIUS = { impure: 17, normal: 19, pure: 22 };
+const ICON = 28;
 const GRID = 500; // Gitterweite in m
 const MIN_ZOOM = 0.02;
 const MAX_ZOOM = 2;
@@ -220,10 +221,11 @@ export function mapView(planIds, data) {
       const r = RADIUS[order[j].pur] / v.k;
       c.setAttribute("r", r);
       const im = icons[j];
-      im.setAttribute("x", order[j].x - (ICON * r) / 2);
-      im.setAttribute("y", order[j].y - (ICON * r) / 2);
-      im.setAttribute("width", ICON * r);
-      im.setAttribute("height", ICON * r);
+      const size = ICON / v.k;
+      im.setAttribute("x", order[j].x - size / 2);
+      im.setAttribute("y", order[j].y - size / 2);
+      im.setAttribute("width", size);
+      im.setAttribute("height", size);
     });
     view = { ...v };
   };
