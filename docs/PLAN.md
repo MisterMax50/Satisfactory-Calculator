@@ -46,5 +46,5 @@ Prüfung: Miner Mk1/2/3 = 60/120/240 pro min, 5/15/45 MW; Wasserextraktor 120 m�
 ## 12. Oberfläche v2 — Careful — nach 7, 8, 9, 10, 11 — [x]
 Rezepte-Modus, Somersloop-Auswahl, „Zuliefern“, Kennzahlen, Rohstoffe-Tabelle mit Förderung, Fehler-Banner `infeasible`; echter Test der Zyklus-Meldung im Browser.
 
-## 13. README — Light — nach 12 — [ ]
+## 13. README — Light — nach 12 — [x]
 `README.md` und `docs/screenshot.png` laut SPEC „README“.

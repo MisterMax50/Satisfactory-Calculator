@@ -1,6 +1,8 @@
 # Dateiübersicht
 
 - `CLAUDE.md` — Kurzregeln für Agenten
+- `README.md` — Kurzbeschreibung, Start, Funktionen, Hinweise (de, kurz en)
+- `docs/screenshot.png` — Screenshot der Produktionsliste für die README
 - `docs/SPEC.md` — Spezifikation (Ziele, Datenmodell, Solver, Design)
 - `docs/PLAN.md` — Aufgaben, Status, Prüfungen
 - `index.html` — App-Shell
