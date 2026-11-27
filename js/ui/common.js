@@ -39,6 +39,17 @@ export function recipeName(recipe) {
   return localName(recipe).replace(/^\s*(Alternate|Alternativ)\s*:\s*/i, "");
 }
 
+/** Fehlende Rohstoffe für 100 % der Ziele (Optimierung „max“); null, wenn nichts fehlt. */
+export function missingNode(data, missing) {
+  if (!missing || !missing.length) return null;
+  return h(
+    "div",
+    { class: "missing small" },
+    h("p", {}, t("available.missing")),
+    h("ul", { class: "missing-list" }, missing.map((m) => h("li", {}, flowNode(data, m.item, m.rate)))),
+  );
+}
+
 export function isUnpackage(recipeId) {
   return recipeId.startsWith("Recipe_Unpackage");
 }

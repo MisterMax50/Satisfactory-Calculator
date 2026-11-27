@@ -289,10 +289,15 @@ body {
 .recipe-list,
 .plan-list,
 .flow-list,
-.combo-list {
+.combo-list,
+.missing-list {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.missing {
+  margin-top: 8px;
 }
 
 /* Ziele */

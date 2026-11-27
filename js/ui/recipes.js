@@ -5,7 +5,7 @@
 import { h, clear, setPendingFocus } from "./dom.js";
 import { t, getLang, formatNumber } from "../i18n.js";
 import { update } from "../state.js";
-import { itemLabel, recipeName, isUnpackage, unitFor } from "./common.js";
+import { itemLabel, recipeName, isUnpackage, unitFor, missingNode } from "./common.js";
 
 let byItem = null;
 let byItemData = null;
@@ -271,6 +271,7 @@ function availableInputs(state, result, data) {
   if (!result.error && typeof result.scale === "number") {
     parts.push(h("p", { class: "small" }, t("available.scale", { pct: `${formatNumber(result.scale * 100, 1)} %` })));
   }
+  if (!result.error) parts.push(missingNode(data, result.missing));
   return parts;
 }
 

@@ -2,7 +2,7 @@
 // Ansichten bekommen (result, data, ctx) mit ctx = { state, extraction }.
 import { h, clear } from "./dom.js";
 import { t, formatNumber } from "../i18n.js";
-import { itemLabel, flowNode } from "./common.js";
+import { itemLabel, flowNode, missingNode } from "./common.js";
 import { productionTable } from "./production.js";
 import { treeView } from "./tree.js";
 import { rawView } from "./rawview.js";
@@ -133,7 +133,12 @@ export function renderResults(root, state, result, extraction, data, allData = d
     const items = (result.items || []).map((id) => itemLabel(data, id)).join(", ");
     const key = `${result.error}:${(result.items || []).join(",")}`;
     // Nur beim ersten Auftreten ansagen, nicht bei jedem Neu-Rendern.
-    ctx.message = h("div", { class: "banner", role: lastError === key ? null : "alert" }, t(ERROR_KEYS[result.error] || "error.cycle", { items }));
+    ctx.message = h(
+      "div",
+      { class: "banner", role: lastError === key ? null : "alert" },
+      t(ERROR_KEYS[result.error] || "error.cycle", { items }),
+      missingNode(data, result.missing),
+    );
     lastError = key;
   } else lastError = null;
   // Ohne Ergebnis: Hinweis statt Kennzahlen, Ergebnis-Reiter bleiben leer.

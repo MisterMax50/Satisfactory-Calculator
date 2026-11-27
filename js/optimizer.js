@@ -303,7 +303,8 @@ function withExtras(result, objectiveValue, usedRecipes) {
  * }} args
  * @returns {object} Result aus buildResult() plus `objectiveValue` und `usedRecipes: { itemId: [recipeId] }`,
  *   oder `{ error: "infeasible", items: [itemId] }` (Ziel-Items, die sich nicht herstellen lassen).
- *   Bei "max" zusätzlich `scale` (erreichter Faktor auf die Ziele) bzw. Fehler "insufficient" / "unbounded".
+ *   Bei "max" zusätzlich `scale` (erreichter Faktor auf die Ziele) bzw. Fehler "insufficient" / "unbounded";
+ *   `missing: [{ item, rate }]` = Rohstoffe, die für scale 1 zusätzlich fehlen (auch beim Fehler "insufficient").
  *   Items, für die data.recipes gar kein Rezept hat, werden wie Rohstoffe geliefert (Gewicht 1) und stehen
  *   in `raw` mit `missingRecipe: true`; infeasible heißt also: vorhandene Rezepte sind alle gesperrt.
  */
@@ -444,11 +445,35 @@ export function optimize({
   // liegt 1e-6 × gewichtete Rohstoffe sonst unter der Toleranz.
   const lp = solveLP(nCols, [...rowsFor(demand), ...capRows()], [combined, secondary]);
 
+  // Fehlmengen für 100 % der Ziele: k = 1 fest, je gedeckeltem Rohstoff eine Spalte s ≥ Verbrauch − Vorrat, Σ Gewicht·s minimal.
+  const shortfall = () => {
+    const capped = supplyIds.filter((id) => capOf(id) < Infinity);
+    const n2 = nCols + capped.length;
+    const rows = [
+      ...rowsFor(demand),
+      { cols: [kCol], vals: [1], rhs: 1 },
+      { cols: [kCol], vals: [-1], rhs: -1 },
+      ...capped.map((id, i) => ({ cols: [supplyCol.get(id), nCols + i], vals: [-1, 1], rhs: -capOf(id) })),
+    ];
+    const cost = new Float64Array(n2);
+    capped.forEach((id, i) => (cost[nCols + i] = weight(id)));
+    const sec = new Float64Array(n2);
+    sec.set(rawCost);
+    const res = solveLP(n2, rows, [cost, sec]);
+    if (res.status !== "optimal") return [];
+    return capped
+      .map((id, i) => ({ item: id, rate: res.x[nCols + i] }))
+      .filter((m) => m.rate > EPS * Math.max(1, capOf(m.item)))
+      .sort((a, b) => b.rate - a.rate);
+  };
+
   let scale = 1;
+  let missingRaw = null;
   if (kCol >= 0) {
     if (lp.status === "unbounded") return { error: "unbounded", items: [...demand.keys()] };
     scale = lp.status === "optimal" ? lp.x[kCol] : 0;
-    if (!(scale > EPS)) return { error: "insufficient", items: [...demand.keys()] };
+    if (scale < 1 - EPS) missingRaw = shortfall();
+    if (!(scale > EPS)) return { error: "insufficient", items: [...demand.keys()], missing: missingRaw };
     for (const [id, rate] of demand) demand.set(id, rate * scale);
   }
 
@@ -526,6 +551,9 @@ export function optimize({
 
   const scaledGoals = goals.map((g) => ({ ...g, rate: g.rate * scale }));
   const result = buildResult({ rates, targets: scaledGoals, data, mods, rowItems, itemRecipes });
-  if (kCol >= 0) result.scale = scale;
+  if (kCol >= 0) {
+    result.scale = scale;
+    result.missing = missingRaw || [];
+  }
   return withExtras(result, objectiveValue, usedRecipes);
 }

@@ -328,6 +328,18 @@ test("optimize max: vorhandenes Erz begrenzt, Ziele als Verhältnis (2 Platten :
   assertClose(res.scale, 15, 1e-9, "scale");
   assertEqual(res.raw, [{ item: ORE, rate: 60 }]);
   assertEqual(res.tree.map((n) => [n.item, n.rate]), [[PLATE, 30], [ROD, 15]]);
+  assertEqual(res.missing, []);
+});
+
+test("optimize max: fehlende Rohstoffe für 100 % der Ziele", () => {
+  const res = opt([[PLATE, 60], [ROD, 30]], { objective: "max", allowAlternates: false, available: { [ORE]: 60 } });
+  assertClose(res.scale, 0.5, 1e-9, "scale");
+  assertEqual(res.missing.length, 1);
+  assertEqual(res.missing[0].item, ORE);
+  assertClose(res.missing[0].rate, 60, 1e-6, "fehlendes Erz");
+  const none = opt([[PLATE, 60]], { objective: "max", allowAlternates: false });
+  assertEqual(none.error, "insufficient");
+  assertEqual(none.missing.map((m) => m.item), [ORE]);
 });
 
 test("optimize max: Alternativrezept holt mehr heraus, Wasser ohne Eintrag unbegrenzt", () => {
